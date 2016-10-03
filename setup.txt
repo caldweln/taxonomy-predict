@@ -1,0 +1,28 @@
+1. install mongodb
+
+wget  https://fastdl.mongodb.org/linux/mongodb-linux-xxx-xxx.tgz
+tar -zxvf yada-yada
+
+
+2. start mongodb server
+
+./mongodb/bin/mongodb --dbpath ./some/path
+
+
+3. restore off db dump
+
+wget http://world.openfoodfacts.org/data/openfoodfacts-mongodbdump.tar.gz
+tar -zxvf yada-yada
+./mongodb/bin/mongorestore --collection products --db off ./off/db/dump/off/products.bson
+
+
+4. install python deps
+
+pip install virtualenv; cd off; virtualenv venv; source venv/bin/activate;
+pip install numpy
+pip install scipy
+pip install scikit-learn
+pip install pandas
+pip install gensim
+pip install BeautifulSoup4
+pip install pymongo

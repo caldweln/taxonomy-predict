@@ -26,13 +26,13 @@ data['raw'] = list(products.find({ \
     'product_name':{'$exists':'true','$ne':''}, \
     'brands':{'$exists':'true','$ne':''}, \
     'quantity':{'$exists':'true','$ne':''}, \
-    'ingredients_text':{'$exists':'true','$ne':''}, \
-    'lang':{'$exists':'true','$eq':'en'} \
+    'ingredients_text':{'$exists':'true','$ne':''}
     }, \
     {"_id":1,"product_name":1,"brands":1,"quantity":1,"ingredients_text":1,"categories_hierarchy":1}))
 
-res = [data['ingredients'].append(d['ingredients_text']) for d in data['raw']]
+res = [data['ingredients'].append(d['product_name'] +' '+d['brands'] +' '+ d['quantity'] +' '+ d['ingredients_text']) for d in data['raw']]
 res = [data['categories'].append(d['categories_hierarchy'][-1]) for d in data['raw']]
+
 
 #todo['raw'] = list(products.find({ \
 #    'categories_hierarchy':{'$exists':'true','$eq':[]}, \
@@ -43,6 +43,7 @@ res = [data['categories'].append(d['categories_hierarchy'][-1]) for d in data['r
 #    'lang':{'$exists':'true','$eq':'en'} \
 #    }, \
 #    {"_id":1,"product_name":1,"brands":1,"quantity":1,"ingredients_text":1}))
+
 
 
 
@@ -62,7 +63,7 @@ from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer, H
 # try different vectorizers
 my_representations = list()
 for name, vectorizer in zip(['tf', 'hashing', 'tfidf', ],
-                            [CountVectorizer(ngram_range=(1,1)),
+                            [CountVectorizer(ngram_range=(1,1), stop_words='english'),
                                 HashingVectorizer(n_features=10000, non_negative=True),
                                     TfidfVectorizer()]):
     vectorizer.fit(x_train_raw)
@@ -70,6 +71,32 @@ for name, vectorizer in zip(['tf', 'hashing', 'tfidf', ],
     if name == 'tf':
         print len(vectorizer.vocabulary_)
 
+
+##########################
+# data inspection
+
+
+from collections import Counter
+import numpy as np
+import matplotlib.pyplot as plt
+%matplotlib inline
+
+print "Number of Products:", len(data['ingredients'])
+print "Average length of docs.:", sum([len(x.split()) for x in data['ingredients']])/float(len(data['ingredients']))
+print "Different classes:", len(set(data['categories']))
+
+# print "Instances per class:", Counter(labels)
+plt.hist(Counter(data['categories']).values())#np.arange(0, 215, 10), color='r', alpha=0.4)
+plt.grid()
+plt.title("Category system description: instances/class")
+plt.xlabel("Instances")
+plt.ylabel("Number of Classes")
+plt.show()
+
+
+
+import sys
+sys.exit()
 
 
 ###########################

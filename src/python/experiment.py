@@ -1,50 +1,19 @@
+
+db_conn_str = 'mongodb://localhost:27017/'
+db_database = "off"
+db_table = "products"
+file_raw_data = '{0}-{1}.p'.format(db_database,  db_table)
+
+
 #########################
 # data fetch
 
-#assumes a local instance of OFF database exists
-#mongorestore --collection products --db off ../dump/off/products.bson
+data_raw_list = pd.read_pickle(file_raw_data))
 
-from pymongo import MongoClient
-import pickle
-
-client = MongoClient()
-client = MongoClient('mongodb://localhost:27017/')
-
-db = client['off']
-
-print db.collection_names()
-
-
-products = db['products']
-
-data = {'raw':[],'ingredients':[], 'categories':[]} # categories_hierarchy and ingredients_text,product_name,brands,quantity
-#test = {'raw':[],'ingredients':[], 'categories':[]} # subset of train
-#todo = {'raw':[],'ingredients':[], 'categories':[]} # no categories_hierarchy
-
-data['raw'] = list(products.find({ \
-    'categories_hierarchy':{'$exists':'true', '$ne':[]}, \
-    'product_name':{'$exists':'true','$ne':''}, \
-    'brands':{'$exists':'true','$ne':''}, \
-    'quantity':{'$exists':'true','$ne':''}, \
-    'ingredients_text':{'$exists':'true','$ne':''}
-    }, \
-    {"_id":1,"product_name":1,"brands":1,"quantity":1,"ingredients_text":1,"categories_hierarchy":1}))
-
-res = [data['ingredients'].append(d['product_name'] +' '+d['brands'] +' '+ d['quantity'] +' '+ d['ingredients_text']) for d in data['raw']]
-res = [data['categories'].append(d['categories_hierarchy'][-1]) for d in data['raw']]
-
-
-#todo['raw'] = list(products.find({ \
-#    'categories_hierarchy':{'$exists':'true','$eq':[]}, \
-#    'product_name':{'$exists':'true','$ne':''}, \
-#    'brands':{'$exists':'true','$ne':''}, \
-#    'quantity':{'$exists':'true','$ne':''}, \
-#    'ingredients_text':{'$exists':'true','$ne':''}, \
-#    'lang':{'$exists':'true','$eq':'en'} \
-#    }, \
-#    {"_id":1,"product_name":1,"brands":1,"quantity":1,"ingredients_text":1}))
-
-
+ingredients_list = []
+categories_list = []
+res = [ingredients_list.append(d['product_name'] +' '+d['brands'] +' '+ d['quantity'] +' '+ d['ingredients_text']) for d in data_raw_list]
+res = [categories_list.append(d['categories_hierarchy'][-1]) for d in data_raw_list]
 
 
 ##########################
@@ -54,8 +23,8 @@ from sklearn import  cross_validation, preprocessing
 import scipy.sparse as sp
 
 # train/test split
-x_train_raw, x_test_raw, y_train, y_test = cross_validation.train_test_split(data['ingredients'],
-                                                                data['categories'], train_size=0.75,random_state=123)
+x_train_raw, x_test_raw, y_train, y_test = cross_validation.train_test_split(ingredients_list,
+                                                                categories_list, train_size=0.75,random_state=123)
 #print len(x_train_raw), len(x_test_raw)
 
 from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer, HashingVectorizer, TfidfVectorizer
@@ -70,33 +39,6 @@ for name, vectorizer in zip(['tf', 'hashing', 'tfidf', ],
     my_representations.append({"name":name, "x_train":vectorizer.transform(x_train_raw), "x_test":vectorizer.transform(x_test_raw)})
     if name == 'tf':
         print len(vectorizer.vocabulary_)
-
-
-##########################
-# data inspection
-
-
-from collections import Counter
-import numpy as np
-import matplotlib.pyplot as plt
-%matplotlib inline
-
-print "Number of Products:", len(data['ingredients'])
-print "Average length of docs.:", sum([len(x.split()) for x in data['ingredients']])/float(len(data['ingredients']))
-print "Different classes:", len(set(data['categories']))
-
-# print "Instances per class:", Counter(labels)
-plt.hist(Counter(data['categories']).values())#np.arange(0, 215, 10), color='r', alpha=0.4)
-plt.grid()
-plt.title("Category system description: instances/class")
-plt.xlabel("Instances")
-plt.ylabel("Number of Classes")
-plt.show()
-
-
-
-import sys
-sys.exit()
 
 
 ###########################

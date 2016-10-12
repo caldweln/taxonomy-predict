@@ -16,6 +16,7 @@ class TaxonomyTree:
     def describe(self):
         print "Taxonomy: " + self.description + " contains "+str(self.root.getDescendentCount()+1)+" nodes, "+str(self.root.getClassifierCount())+" of which have a classifier"
         self.root.describe()
+        print "Taxonomy: " + self.description + " contains "+str(self.root.getDescendentCount()+1)+" nodes, "+str(self.root.getClassifierCount())+" of which have a classifier"
 
 class TaxTreeNode:
     def __init__(self, parentChain):

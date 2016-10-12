@@ -1,3 +1,4 @@
+
 class TaxonomyTree:
 
     def __init__(self, description):
@@ -9,6 +10,9 @@ class TaxonomyTree:
         # pass to root node
         self.root.add(TaxTreeNode(['root'] + nodeLabelChain))
 
+    def initClassifiers(self, moduleName, classifierName, params):
+        self.root.initClassifier(moduleName, classifierName, params)
+
     def describe(self):
         print "Taxonomy: " + self.description
         self.root.describe()
@@ -19,6 +23,7 @@ class TaxTreeNode:
         self.children = {}                      # dict of taxonomy tree node, key: last entry in parentChain
         self.isParent = False
         self.isRoot = False
+        self.classifier = None
 
     def add(self, node):
         self.isParent = True
@@ -36,13 +41,21 @@ class TaxTreeNode:
                 self.children[dstNodeLabel] = TaxTreeNode(self.parentChain + [dstNodeLabel])
             self.children[dstNodeLabel].add(node)
 
+    def initClassifier(self, moduleName, classifierName, params):
+        for child in self.children.values():
+            child.initClassifier(moduleName, classifierName, params)
+        if len(self.children) > 1:
+            module = __import__(moduleName, fromlist=['dummy'])
+            classifierClass = getattr(module, classifierName)
+            self.classifier = classifierClass(**params)
+
     def describe(self):
         if self.isRoot:
-            print "'" + self.parentChain[-1] + "' parent of " + str(len(self.children)) + " children"
+            print "'" + self.parentChain[-1] + "' ["+str(self.classifier)+"] parent of " + str(len(self.children)) + " children"
         elif self.isParent:
-            print "'" + self.parentChain[-1] + "' at " + str(self.parentChain) + " parent of " + str(len(self.children)) + " children"
+            print "'" + self.parentChain[-1] + "' ["+str(self.classifier)+"] at " + str(self.parentChain) + " parent of " + str(len(self.children)) + " children"
         else:
-            print "'" + self.parentChain[-1] + "' at " + str(self.parentChain)
+            print "'" + self.parentChain[-1] + "' ["+str(self.classifier)+"] at " + str(self.parentChain)
 
         for child in self.children.values():
             child.describe()

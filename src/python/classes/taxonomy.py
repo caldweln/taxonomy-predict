@@ -14,7 +14,7 @@ class TaxonomyTree:
         self.root.initClassifier(moduleName, classifierName, params)
 
     def describe(self):
-        print "Taxonomy: " + self.description
+        print "Taxonomy: " + self.description + " contains "+str(self.root.getDescendentCount()+1)+" nodes, "+str(self.root.getClassifierCount())+" of which have a classifier"
         self.root.describe()
 
 class TaxTreeNode:
@@ -48,6 +48,18 @@ class TaxTreeNode:
             module = __import__(moduleName, fromlist=['dummy'])
             classifierClass = getattr(module, classifierName)
             self.classifier = classifierClass(**params)
+
+    def getDescendentCount(self):
+        num_desc = len(self.children)
+        for child in self.children.values():
+            num_desc += child.getDescendentCount()
+        return num_desc
+
+    def getClassifierCount(self):
+        num_clsf = (1 if len(self.children) > 1 else 0)
+        for child in self.children.values():
+            num_clsf += child.getClassifierCount()
+        return num_clsf
 
     def describe(self):
         if self.isRoot:

@@ -50,13 +50,12 @@ from sklearn import naive_bayes, linear_model, svm, ensemble, neighbors, metrics
 from sklearn.ensemble import RandomForestClassifier
 
 # configure
-learners = [{"name":"LR", "model":linear_model.LogisticRegression(C=1)},
-            {"name":"SVM", "model":svm.LinearSVC(C=1)},
+learners = [{"name":"LR", "model":linear_model.LogisticRegression(C=1,class_weight='balanced')},
+            {"name":"SVM", "model":svm.LinearSVC(C=1,class_weight='balanced')},
             {"name":"5-NN", "model":neighbors.KNeighborsClassifier(n_neighbors=5)},
             {"name":"Rochio", "model":neighbors.NearestCentroid()},
             {"name":"N.B.", "model":naive_bayes.MultinomialNB(alpha=1)},
             {"name":"R.F.", "model":RandomForestClassifier(n_estimators = 100)}]
-
 # fit and test
 for representation in my_representations:
     print "\tRepresentation:", representation["name"]

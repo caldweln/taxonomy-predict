@@ -45,5 +45,5 @@ print "Time taken {0:.2f} seconds: ".format(time.time() - start_time)
 
 pickle.dump(data_raw, open(file_raw_data, 'wb'))
 
-print "Saved {0} data to {1}".format(db_table, file_savename)
+print "Saved {0} data to {1}".format(db_table, file_raw_data)
 print "-------------------------------------------------------"

@@ -1,9 +1,8 @@
 from classes import taxonomy as tax
-#from sklearn import linear_model
 
 t = tax.TaxonomyTree('Simple Multi-Level Taxonomy')
 # Sample Category hierarchies to build Taxonomy
-t.add(['plant-based-foods','frozen','greens'])
+t.add(['plant-based-foods','fresh','greens'])
 t.add(['plant-based-foods','frozen','roots'])
 t.add(['plant-based-foods','frozen','fruit'])
 t.add(['plant-based-foods','frozen','greens','salads'])

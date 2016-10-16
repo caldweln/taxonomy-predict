@@ -29,6 +29,11 @@ class TaxonomyTree:
     def fit(self, x_raw_all, y_raw_all):
         self.root.fit(x_raw_all, y_raw_all)
 
+    def predict(self, x_data):
+        #
+        # TODO
+        # return self.root.predict(x_data)
+
     def describe(self):
         print "Taxonomy: " + self.description + " contains "+str(self.root.getDescendentCount()+1)+" nodes, "+str(self.root.getClassifierCount())+" of which have a classifier"
         self.root.describe()
@@ -110,6 +115,10 @@ class TaxTreeNode:
         #
         # Split into train data for fitting classifier & test data for getting accuracy stat
         #
+        #
+        #TODO
+        #push data split ot outside of class
+        #
         x_train_raw, x_test_raw, y_train, y_test = cross_validation.train_test_split(x_raw, y, train_size=0.75,random_state=123)
         #
         # Which of this train data is sufficient in numbers
@@ -131,6 +140,10 @@ class TaxTreeNode:
             # Vectorize and fit the classifier
             #
             print "Fitting: "+self.getLocationStr()
+            #
+            # TODO
+            # push vectorizer config out of class
+            #
             vectorizer = CountVectorizer(ngram_range=(1,1), stop_words='english')
             vectorizer.fit(x_train_raw)
             x_train = vectorizer.transform(x_train_raw)
@@ -164,9 +177,14 @@ class TaxTreeNode:
         self.default_predict = default_predict
 
     def predict(self, x_data):
-        #check if fitted
-        #check x_data
-        #x_data : {array-like, sparse matrix} Samples
+        #
+        # TODO
+        #
+        # check if fitted
+        # check x_data
+        # x_data : {array-like, sparse matrix} Samples
+        #
+        # recursive predict
 
 
     def getLocationStr(self):

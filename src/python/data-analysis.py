@@ -44,32 +44,22 @@ freq_tl_cats_counts.plot.pie()
 #idea: need to sub-sample the data categories, will the classifier support class_weight??
 
 #todo
-# use dataframes to concat fields like below
-# then filter data with above categories  
+# then filter data with above categories
+product_df['feature_bag'] = product_df.product_name + ' ' + product_df.brands + ' ' + product_df.quantity + ' ' + product_df.ingredients_text
 
-import sys
-sys.exit()
+product_df = product_df.assign(tl_cat = lambda x: categories_df[0][x.index])
 
+product_train_df = product_df[product_df.tl_cat.isin(freq_tl_cats_counts.index.tolist())]
 
-
-ingredients = []
-categories = []
-cat_lens = []
-res = [ingredients.append(d['product_name'] +' '+d['brands'] +' '+ d['quantity'] +' '+ d['ingredients_text']) for d in data['raw']]
-res = [cat_lens.append(len(d['categories_hierarchy'])) for d in data['raw']]
-
-
-print "Average length of docs.:", sum([len(x.split()) for x in ingredients])/float(len(ingredients)
-
-
+product_train_df[['feature_bag','categories_hierarchy']].to_pickle('feature_data.p')
 
 ##########################
 # preprocessing
 
 
 # train/test split
-x_train_raw, x_test_raw, y_train, y_test = cross_validation.train_test_split(data['ingredients'],
-                                                                data['categories'], train_size=0.75,random_state=123)
+x_train_raw, x_test_raw, y_train, y_test = cross_validation.train_test_split(product_train_df.feature_bag,
+                                                                product_train_df.tl_cat, train_size=0.75,random_state=123)
 #print len(x_train_raw), len(x_test_raw)
 
 from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer, HashingVectorizer, TfidfVectorizer

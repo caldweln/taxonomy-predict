@@ -17,6 +17,11 @@ t.initClassifiers('sklearn.linear_model','LogisticRegression',{'C':1,'class_weig
 # TODO fix ascii print issue
 #t.describe()
 print "--------------"
+
+min_per_class_sample_count = 3
+min_class_count = 2
+
+
 # Get location/classifier pairs from taxonomy
 locationClassifiers = t.getLocationClassifiers()
 # For each pair, using location filter relevant product data for classifier training
@@ -32,31 +37,44 @@ for locClsfr in locationClassifiers:
     filtered_products_df = None
     filtered_products_df = product_df[product_df.index.isin(rowixs)]
     print "\nTraining ["+str(location)+"] classifier on the following samples"
-    print(filtered_products_df)
+    #print(filtered_products_df)
 
     x_train_raw, x_test_raw, y_train, y_test = cross_validation.train_test_split(filtered_products_df.feature_bag,
                                                                     filtered_products_df.nxtCategory, train_size=0.75,random_state=123)
-    #print "x_train_raw"
-    #print x_train_raw
-    #print "y_train"
-    #print y_train
-    #print "x_test_raw"
-    #print x_test_raw
-    #print "y_test"
-    #print y_test
 
+
+    print "Before removing small counts..."
+    print "x_train_raw"
+    print x_train_raw.describe()
+    print "y_train"
+    print y_train.describe()
 
     #TODO
     # Handle issue where filtered and split dataset no longer has the sample count for classification
+    y_train=y_train.groupby(y_train).filter(lambda x: len(x) > min_per_class_sample_count)
+    x_train_raw=x_train_raw[x_train_raw.index.isin(y_train.index)]
 
-    vectorizer = CountVectorizer(ngram_range=(1,1), stop_words='english')
-    vectorizer.fit(x_train_raw)
-    x_train = vectorizer.transform(x_train_raw)
-    x_test = vectorizer.transform(x_test_raw)
-    classifier.fit(x_train, y_train)
-    preds = classifier.predict(x_test)
-    print "%s:\tAccuracy: %0.3f\tF1 macro: %0.3f"%(location,
-                metrics.accuracy_score(y_test, preds), metrics.f1_score(y_test, preds, average='macro'))
+
+    print "After...."
+    print "x_train_raw"
+    print x_train_raw.describe()
+    print "y_train"
+    print y_train.describe()
+
+    if len(y_train.value_counts()) > min_class_count:
+
+        vectorizer = CountVectorizer(ngram_range=(1,1), stop_words='english')
+        vectorizer.fit(x_train_raw)
+        x_train = vectorizer.transform(x_train_raw)
+        x_test = vectorizer.transform(x_test_raw)
+        classifier.fit(x_train, y_train)
+        preds = classifier.predict(x_test)
+        print "%s:\tAccuracy: %0.3f\tF1 macro: %0.3f"%(location,
+                    metrics.accuracy_score(y_test, preds), metrics.f1_score(y_test, preds, average='macro'))
+    else:
+        print "Skipping "+str(location)+" due to insufficient class count"
+        #TODO flag a default prediction for this node/classifier
+        #remove this classifier
 
 
 

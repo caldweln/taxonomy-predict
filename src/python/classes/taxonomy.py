@@ -1,3 +1,7 @@
+import pandas as pd
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn import  cross_validation, preprocessing
+from sklearn import naive_bayes, linear_model, svm, ensemble, neighbors, metrics
 
 class TaxonomyTree:
 
@@ -19,6 +23,9 @@ class TaxonomyTree:
         if len(locClsfrs) != clsfrCount:
             raise ValueError('getLocationClassifiers / getClassifierCount differ on counts')
         return locClsfrs
+
+    def fit(self, x_raw_all, y_raw_all):
+        self.root.fit(x_raw_all, y_raw_all)
 
     def describe(self):
         print "Taxonomy: " + self.description + " contains "+str(self.root.getDescendentCount()+1)+" nodes, "+str(self.root.getClassifierCount())+" of which have a classifier"
@@ -82,6 +89,71 @@ class TaxTreeNode:
             if len(descendentResults) > 0:
                 result += (descendentResults)
         return result
+
+    def fit(self, x_raw_all, y_raw_all):
+
+        min_per_class_sample_count = 30
+        min_class_count = 2
+        rowixs = []
+        #
+        # Which of the data applies to this node
+        #
+        y_all = pd.DataFrame(y_raw_all)
+        for ix,row in y_raw_all.iteritems():
+            if len(row) > len(self.location) and cmp(row[:len(self.location)],self.location)==0:
+                y_all[ix] = row[len(self.location)]
+                rowixs += [ix]
+                #product_df['nxtCategory'][ix] = row['categories_hierarchy'][len(self.location)]
+
+        x_raw = x_raw_all[x_raw_all.index.isin(rowixs)]
+        y = y_all[y_all.index.isin(rowixs)]
+
+        #
+        # Split into train data for fitting classifier & test data for getting accuracy stat
+        #
+        x_train_raw, x_test_raw, y_train, y_test = cross_validation.train_test_split(x_raw, y, train_size=0.75,random_state=123)
+
+        #
+        # Which of this train data is sufficient in numbers
+        #
+        y_train=y_train.groupby(y_train).filter(lambda x: len(x) > min_per_class_sample_count)
+        x_train_raw=x_train_raw[x_train_raw.index.isin(y_train.index)]
+
+        #
+        # Is there any classes remaining
+        #
+        pruned_child_keys = pd.unique(y_train.ravel())
+
+        if len(pruned_child_keys) <= 0:
+            #prune this entire branch
+            return
+
+        if len(pruned_child_keys) > min_class_count:
+            #
+            # Vectorize and fit the classifier
+            #
+            vectorizer = CountVectorizer(ngram_range=(1,1), stop_words='english')
+            vectorizer.fit(x_train_raw)
+            x_train = vectorizer.transform(x_train_raw)
+            x_test = vectorizer.transform(x_test_raw)
+            self.classifier.fit(x_train, y_train)
+            preds = self.classifier.predict(x_test)
+            print "%s:\tAccuracy: %0.3f\tF1 macro: %0.3f"%(self.location,
+                        metrics.accuracy_score(y_test, preds), metrics.f1_score(y_test, preds, average='macro'))
+            self.local_accuracy = metrics.accuracy_score(y_test, preds)
+            self.local_f1_score = metrics.f1_score(y_test, preds, average='macro')
+            #TODO
+            #global metrics, taking into account loss in upper layers
+        else:
+            self.classifier = None
+            self.predict_default = y_train.value_counts().index[0]
+            print "Insufficient class count at ["+str(self.location)+"] defaulting prediction to ["+self.predict_default+"]"
+
+
+        for child_key in pruned_child_keys:
+            self.children[child_key].fit(x_raw, y)
+
+
 
     def describe(self):
         if self.isRoot:

@@ -21,6 +21,15 @@ print "--------------"
 min_per_class_sample_count = 3
 min_class_count = 2
 
+x_raw_all = product_df['feature_bag']
+y_raw_all = product_df['categories_hierarchy']
+
+t.fit(x_raw_all, y_raw_all)
+
+import sys
+sys.exit()
+
+
 
 # Get location/classifier pairs from taxonomy
 locationClassifiers = t.getLocationClassifiers()
@@ -30,38 +39,40 @@ for locClsfr in locationClassifiers:
     classifier = locClsfr[1]
     rowixs = []
     product_df['nxtCategory'] = ''
+
+    #
+    # Which of the data applies to me
+    #
     for ix,row in product_df.iterrows():
         if len(row['categories_hierarchy']) > len(location) and cmp(row['categories_hierarchy'][:len(location)],location)==0:
             rowixs += [ix]
             product_df['nxtCategory'][ix] = row['categories_hierarchy'][len(location)]
     filtered_products_df = None
     filtered_products_df = product_df[product_df.index.isin(rowixs)]
-    print "\nTraining ["+str(location)+"] classifier on the following samples"
-    #print(filtered_products_df)
 
+    #
+    # Split into train data for fitting classifier & test data for getting accuracy results
+    #
     x_train_raw, x_test_raw, y_train, y_test = cross_validation.train_test_split(filtered_products_df.feature_bag,
                                                                     filtered_products_df.nxtCategory, train_size=0.75,random_state=123)
 
+    #
+    # Which of the data that applies to me, is sufficient in numbers
+    #
 
-    print "Before removing small counts..."
-    print "x_train_raw"
-    print x_train_raw.describe()
-    print "y_train"
-    print y_train.describe()
-
-    #TODO
-    # Handle issue where filtered and split dataset no longer has the sample count for classification
     y_train=y_train.groupby(y_train).filter(lambda x: len(x) > min_per_class_sample_count)
     x_train_raw=x_train_raw[x_train_raw.index.isin(y_train.index)]
 
 
-    print "After...."
-    print "x_train_raw"
-    print x_train_raw.describe()
-    print "y_train"
-    print y_train.describe()
 
     if len(y_train.value_counts()) > min_class_count:
+
+
+        #
+        # Vectorize what's left
+        # And fit the classifier
+        #
+
 
         vectorizer = CountVectorizer(ngram_range=(1,1), stop_words='english')
         vectorizer.fit(x_train_raw)

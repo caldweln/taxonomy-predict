@@ -30,9 +30,36 @@ class TaxonomyTree:
         self.root.fit(x_raw_all, y_raw_all)
 
     def predict(self, x_data):
-        #
-        # TODO
-        # return self.root.predict(x_data)
+        return None #return self.root.predict(x_data)
+
+
+    def get_tree_depth(self):
+        return self.root.max_dist_to_leaf()
+
+
+    def describe_levels(self):
+        for l in range(1,self.get_tree_depth()+1):
+            self.getLevelStats(l)
+
+    def getLevelStats(self, level_num):
+        nodes=self.root.seekNodesAt(level_num)
+        total_acc = 0
+        total_f1_score = 0
+        total_count = 0
+        for node in nodes:
+            if node.local_accuracy is not None:
+                total_count += 1
+                total_acc += node.local_accuracy
+                total_f1_score += node.local_f1_score
+        if total_count > 0:
+            total_acc /= total_count
+            total_f1_score /= total_count
+            print "Level "+str(level_num)+", "+str(total_count)+"/"+str(len(nodes))
+            print "Avg Accuracy: "+str(total_acc)
+            print "Avg F1 Score: "+str(total_f1_score)
+        else:
+            print "Level "+str(level_num)+", "+str(total_count)+"/"+str(len(nodes))
+
 
     def describe(self):
         print "Taxonomy: " + self.description + " contains "+str(self.root.getDescendentCount()+1)+" nodes, "+str(self.root.getClassifierCount())+" of which have a classifier"
@@ -46,6 +73,17 @@ class TaxTreeNode:
         self.isParent = False
         self.isRoot = False
         self.classifier = None
+        self.local_accuracy = None
+        self.local_f1_score = None
+
+    def seekNodesAt(self, level_to_go):
+        if level_to_go<=0:
+            return self.children.values()
+        else:
+            result = []
+            for child in self.children.values():
+                result += child.seekNodesAt(level_to_go-1)
+            return result
 
     def add(self, node):
         self.isParent = True
@@ -185,14 +223,23 @@ class TaxTreeNode:
         # x_data : {array-like, sparse matrix} Samples
         #
         # recursive predict
-
+        return None
 
     def getLocationStr(self):
         return str(self.location).encode('ascii', 'ignore')
 
     def getPredictDefaultStr(self):
-        return self.predict_default.encode('ascii', 'ignore')
+        return self.default_predict.encode('ascii', 'ignore')
 
+    def max_dist_to_leaf(self):
+        if len(self.children) <= 0:
+            return 0
+        else:
+            min_dist = 1
+            result = min_dist
+            for child in self.children.values():
+                result = max(result, min_dist + child.max_dist_to_leaf())
+            return result
 
     def describe(self):
         if self.isRoot:

@@ -4,20 +4,25 @@ import codecs
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn import  cross_validation, preprocessing
 from sklearn import naive_bayes, linear_model, svm, ensemble, neighbors, metrics
+from exceptions import NotFittedError
 
 class TaxonomyTree:
 
-    def __init__(self, description):
+    def __init__(self, description, moduleName='sklearn.linear_model',classifierName='LogisticRegression',params={'C':1,'class_weight':'balanced'}):
         self.description = description
         self.root = TaxTreeNode([])
         self.root.isRoot = True
+        self.root.initClassifier(moduleName, classifierName, params)
+
+    def fit(self, x_raw_all, y_raw_all):
+        self.root.fit(x_raw_all, y_raw_all)
+
+    def predict(self, x_data):
+        return self.root.predict(x_data)
 
     def add(self, nodeLabelChain):
         # pass to root node
         self.root.add(TaxTreeNode(nodeLabelChain))
-
-    def initClassifiers(self, moduleName, classifierName, params):
-        self.root.initClassifier(moduleName, classifierName, params)
 
     def getLocationClassifiers(self):
         locClsfrs = self.root.getLocationClassifiers()
@@ -25,13 +30,6 @@ class TaxonomyTree:
         if len(locClsfrs) != clsfrCount:
             raise ValueError('getLocationClassifiers / getClassifierCount differ on counts')
         return locClsfrs
-
-    def fit(self, x_raw_all, y_raw_all):
-        self.root.fit(x_raw_all, y_raw_all)
-
-    def predict(self, x_data):
-        return None #return self.root.predict(x_data)
-
 
     def get_tree_depth(self):
         return self.root.max_dist_to_leaf()
@@ -73,8 +71,11 @@ class TaxTreeNode:
         self.isParent = False
         self.isRoot = False
         self.classifier = None
+        self.isFitted = False
         self.local_accuracy = None
         self.local_f1_score = None
+        self.min_per_class_sample_count = 10
+        self.min_class_count = 2
 
     def seekNodesAt(self, level_to_go):
         if level_to_go<=0:
@@ -132,12 +133,10 @@ class TaxTreeNode:
         for child in self.children.values():
             descendentResults = child.getLocationClassifiers()
             if len(descendentResults) > 0:
-                result += (descendentResults)
+                result.extend(descendentResults)
         return result
 
     def fit(self, x_raw_all, y_raw_all):
-        min_per_class_sample_count = 10
-        min_class_count = 2
         rowixs = []
         #
         # Which of the data applies to this node
@@ -161,7 +160,7 @@ class TaxTreeNode:
         #
         # Which of this train data is sufficient in numbers
         #
-        y_train=y_train.groupby(y_train).filter(lambda x: len(x) > min_per_class_sample_count)
+        y_train=y_train.groupby(y_train).filter(lambda x: len(x) > self.min_per_class_sample_count)
         x_train_raw=x_train_raw[x_train_raw.index.isin(y_train.index)]
         #
         # Is there any classes remaining
@@ -173,7 +172,7 @@ class TaxTreeNode:
             print "Pruning "+self.getLocationStr()+", not enough samples for any children!"
             return
 
-        if len(pruned_child_keys) > min_class_count and self.classifier != None:
+        if len(pruned_child_keys) > self.min_class_count and self.classifier != None:
             #
             # Vectorize and fit the classifier
             #
@@ -187,6 +186,7 @@ class TaxTreeNode:
             x_train = vectorizer.transform(x_train_raw)
             x_test = vectorizer.transform(x_test_raw)
             self.classifier.fit(x_train, y_train)
+            self.isFitted = True
             preds = self.classifier.predict(x_test)
             print "%s:\tAccuracy: %0.3f\tF1 macro: %0.3f"%(self.getLocationStr(),
                         metrics.accuracy_score(y_test, preds), metrics.f1_score(y_test, preds, average='macro'))
@@ -215,15 +215,21 @@ class TaxTreeNode:
         self.default_predict = default_predict
 
     def predict(self, x_data):
-        #
-        # TODO
-        #
-        # check if fitted
-        # check x_data
-        # x_data : {array-like, sparse matrix} Samples
-        #
-        # recursive predict
-        return None
+        #TODO
+        #x_data is
+        # - in a valid data structure... array etc
+        # - in a valid data format... data type, vectorized
+
+        pred_results = []
+        if self.classifier is not None:
+            if not self.isFitted:
+                raise NotFittedError("Call fit before predict")
+            pred_results.append(self.classifier.predict(x_data))
+            if self.children.has_key(pred_results[-1]):
+                pred_results.extend(self.children[pred_results[-1]].predict(x_data))
+            else:
+                raise ValueError("Prediction Value Error by classifier at "+self.getLocationStr())
+        return pred_results
 
     def getLocationStr(self):
         return str(self.location).encode('ascii', 'ignore')

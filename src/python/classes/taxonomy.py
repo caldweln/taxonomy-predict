@@ -18,15 +18,12 @@ class TaxonomyTree:
         self.params = params
 
     def fit(self, x_indexed_all):
+        res = [self.root.add(TaxTreeNode(list(row.name))) for ix,row in x_indexed_all.iterrows()]
         self.root.initClassifier(self.moduleName, self.classifierName, self.params)
         self.root.fit(x_indexed_all)
 
     def predict(self, x_data):
         return self.root.predict(x_data)
-
-    def add(self, nodeLabelChain):
-        # pass to root node
-        self.root.add(TaxTreeNode(nodeLabelChain))
 
     def getLocationClassifiers(self):
         locClsfrs = self.root.getLocationClassifiers()

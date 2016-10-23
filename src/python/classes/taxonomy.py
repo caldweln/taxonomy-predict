@@ -12,10 +12,14 @@ class TaxonomyTree:
         self.description = description
         self.root = TaxTreeNode([])
         self.root.isRoot = True
-        self.root.initClassifier(moduleName, classifierName, params)
 
-    def fit(self, x_raw_all, y_raw_all):
-        self.root.fit(x_raw_all, y_raw_all)
+        self.moduleName = moduleName
+        self.classifierName = classifierName
+        self.params = params
+
+    def fit(self, x_indexed_all):
+        self.root.initClassifier(self.moduleName, self.classifierName, self.params)
+        self.root.fit(x_indexed_all)
 
     def predict(self, x_data):
         return self.root.predict(x_data)
@@ -74,8 +78,9 @@ class TaxTreeNode:
         self.isFitted = False
         self.local_accuracy = None
         self.local_f1_score = None
-        self.min_per_class_sample_count = 10
+        self.min_per_class_sample_count = 2
         self.min_class_count = 2
+        self.default_predict = None
 
     def seekNodesAt(self, level_to_go):
         if level_to_go<=0:
@@ -136,76 +141,62 @@ class TaxTreeNode:
                 result.extend(descendentResults)
         return result
 
-    def fit(self, x_raw_all, y_raw_all):
-        rowixs = []
+    def fit(self, x_indexed_all):
         #
         # Which of the data applies to this node
         #
-        y_all = pd.DataFrame(y_raw_all)
-        y_all['label'] = ''
-        for ix,row in y_raw_all.iteritems():
-            if len(row) > len(self.location) and cmp(row[:len(self.location)],self.location)==0:
-                y_all['label'][ix] = row[len(self.location)]
-                rowixs.append(ix)
-        x_raw = x_raw_all[x_raw_all.index.isin(rowixs)]
-        y = y_all['label'][y_all.index.isin(rowixs)]
+        if len(self.location) > 0:
+            x_local = x_indexed_all.ix[tuple(self.location)]
+        else:
+            x_local = x_indexed_all
+
+        if type(x_local.index) is pd.indexes.multi.MultiIndex:
+            y_local = pd.Series(x_local.index.get_level_values(0).base)
+        else:
+            y_local = pd.Series(x_local.index.base)
+
         #
-        # Split into train data for fitting classifier & test data for getting accuracy stat
         #
         #
-        #TODO
-        #push data split ot outside of class
+        x_local = pd.DataFrame(x_local).set_index(y_local.index)
         #
-        x_train_raw, x_test_raw, y_train, y_test = cross_validation.train_test_split(x_raw, y, train_size=0.75,random_state=123)
         #
-        # Which of this train data is sufficient in numbers
         #
-        y_train=y_train.groupby(y_train).filter(lambda x: len(x) > self.min_per_class_sample_count)
-        x_train_raw=x_train_raw[x_train_raw.index.isin(y_train.index)]
+        y_fit=y_local.groupby(y_local).filter(lambda x: len(x) >= self.min_per_class_sample_count)
+        x_fit=x_local[x_local.index.isin(y_fit.index)]
         #
         # Is there any classes remaining
         #
-        pruned_child_keys = pd.unique(y_train.ravel())
+        pruned_child_keys = pd.unique(y_fit.ravel())
 
         if len(pruned_child_keys) <= 0:
-            #prune this entire branch
             print "Pruning "+self.getLocationStr()+", not enough samples for any children!"
-            return
+            return #prune this entire branch
 
-        if len(pruned_child_keys) > self.min_class_count and self.classifier != None:
+
+        if len(pruned_child_keys) >= self.min_class_count and self.classifier != None:
             #
-            # Vectorize and fit the classifier
+            # fit the classifier
             #
             print "Fitting: "+self.getLocationStr()
-            #
-            # TODO
-            # push vectorizer config out of class
-            #
-            vectorizer = CountVectorizer(ngram_range=(1,1), stop_words='english')
-            vectorizer.fit(x_train_raw)
-            x_train = vectorizer.transform(x_train_raw)
-            x_test = vectorizer.transform(x_test_raw)
-            self.classifier.fit(x_train, y_train)
+            self.classifier.fit(x_fit, y_fit)
             self.isFitted = True
-            preds = self.classifier.predict(x_test)
-            print "%s:\tAccuracy: %0.3f\tF1 macro: %0.3f"%(self.getLocationStr(),
-                        metrics.accuracy_score(y_test, preds), metrics.f1_score(y_test, preds, average='macro'))
-            self.local_accuracy = metrics.accuracy_score(y_test, preds)
-            self.local_f1_score = metrics.f1_score(y_test, preds, average='macro')
-            #TODO
-            #global metrics, taking into account loss in upper layers
+            self.local_accuracy = 1.0 #metrics.accuracy_score(y_test, preds)
+            self.local_f1_score = 1.0 #metrics.f1_score(y_test, preds, average='macro')
+
         else:
-            self.prune(y_train.value_counts().index[0])
+            self.prune(pruned_child_keys[0])
             print "Skipping: "+self.getLocationStr()+", defaulting prediction to ["+self.getPredictDefaultStr()+"]"
         #
         # fit descendent classifiers
         #
-        x_raw = None
-        y_all = None
-        y = None
+        x_local = None
+        y_local = None
+        x_fit = None
+        y_fit = None
         for child_key in pruned_child_keys:
             if self.children.has_key(child_key):
-                self.children[child_key].fit(x_raw_all, y_raw_all)
+                self.children[child_key].fit(x_indexed_all) #maybe just pass x_fit
         for child in self.children.values():
             if child.location[-1] not in pruned_child_keys:
                 child.prune()
@@ -221,14 +212,22 @@ class TaxTreeNode:
         # - in a valid data format... data type, vectorized
 
         pred_results = []
-        if self.classifier is not None:
-            if not self.isFitted:
-                raise NotFittedError("Call fit before predict")
-            pred_results.append(self.classifier.predict(x_data))
-            if self.children.has_key(pred_results[-1]):
-                pred_results.extend(self.children[pred_results[-1]].predict(x_data))
-            else:
-                raise ValueError("Prediction Value Error by classifier at "+self.getLocationStr())
+        if self.isParent:
+            if self.classifier is not None:
+                if not self.isFitted:
+                    raise NotFittedError("Call fit before predict")
+                pred_results.append(self.classifier.predict(x_data)[0])
+                print "predicting: " + str(pred_results[-1])
+            elif self.default_predict is not None:
+                pred_results.append(self.default_predict)
+                print "predicting: " + str(pred_results[-1]) + " (default)"
+        else:
+            return []
+
+        if self.children.has_key(str(pred_results[-1])):
+            pred_results.extend(self.children[str(pred_results[-1])].predict(x_data))
+        else:
+            raise ValueError("Prediction Value Error by classifier at "+self.getLocationStr())
         return pred_results
 
     def getLocationStr(self):

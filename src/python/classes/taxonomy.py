@@ -23,7 +23,9 @@ class TaxonomyTree:
         self.root.fit(x_indexed_all)
 
     def predict(self, x_data):
-        return self.root.predict(x_data)
+        results = []
+        res = [results.append(self.root.predict(row)) for ix,row in x_data.iterrows()]
+        return results
 
     def getLocationClassifiers(self):
         locClsfrs = self.root.getLocationClassifiers()
@@ -90,28 +92,26 @@ class TaxTreeNode:
 
     def add(self, node):
         self.isParent = True
-        if node.location is None or len(node.location) == 0:
-            raise ValueError('trying to add a node without location')
-        elif len(node.location) <= len(self.location):
-            # fix location and keep at this level
-            fixedLocation = self.location + [node.location[-1]]
-            node.location = fixedLocation
-            print "Warning: fixing bad location to "+node.getLocationStr()
+        if node.location is None or len(node.location) == 0 or len(node.location) <= len(self.location):
+            raise ValueError('trying to add a node with bad/missing location')
 
         if cmp(node.location[:-1], self.location) == 0:
             # keep at this level
+            print "Adding child at "+self.getLocationStr()
             self.children[node.location[-1]] = node
         else:
             # pass down to next level
             dstNodeLabel = node.location[len(self.location)]
             if not self.children.has_key(dstNodeLabel):
-                self.children[dstNodeLabel] = TaxTreeNode(self.location + [dstNodeLabel])
+                self.add(TaxTreeNode(self.location + [dstNodeLabel]))
             self.children[dstNodeLabel].add(node)
 
     def initClassifier(self, moduleName, classifierName, params):
         for child in self.children.values():
             child.initClassifier(moduleName, classifierName, params)
-        if len(self.children) > 1:
+        if len(self.children) == 1:
+            self.default_predict = self.children.keys()[0]
+        elif len(self.children) > 1:
             module = __import__(moduleName, fromlist=['dummy'])
             classifierClass = getattr(module, classifierName)
             self.classifier = classifierClass(**params)
@@ -139,6 +139,13 @@ class TaxTreeNode:
         return result
 
     def fit(self, x_indexed_all):
+        if len(self.children) <= 0:
+            return
+        #
+        # fit child classifiers
+        #
+        for child in self.children.values():
+            child.fit(x_indexed_all) #maybe just pass x_fit
         #
         # Which of the data applies to this node
         #
@@ -168,14 +175,16 @@ class TaxTreeNode:
 
         if len(pruned_child_keys) <= 0:
             print "Pruning "+self.getLocationStr()+", not enough samples for any children!"
+            self.prune()
             return #prune this entire branch
 
 
-        if len(pruned_child_keys) >= self.min_class_count and self.classifier != None:
+        if len(pruned_child_keys) >= self.min_class_count:
             #
             # fit the classifier
             #
             print "Fitting: "+self.getLocationStr()
+            #y_fit.to_csv('debug/y_fit_'+self.getLocationStr()+'.csv')
             self.classifier.fit(x_fit, y_fit)
             self.isFitted = True
             self.local_accuracy = 1.0 #metrics.accuracy_score(y_test, preds)
@@ -183,52 +192,47 @@ class TaxTreeNode:
 
         else:
             self.prune(pruned_child_keys[0])
-            print "Skipping: "+self.getLocationStr()+", defaulting prediction to ["+self.getPredictDefaultStr()+"]"
-        #
-        # fit descendent classifiers
-        #
-        x_local = None
-        y_local = None
-        x_fit = None
-        y_fit = None
-        for child_key in pruned_child_keys:
-            if self.children.has_key(child_key):
-                self.children[child_key].fit(x_indexed_all) #maybe just pass x_fit
-        for child in self.children.values():
-            if child.location[-1] not in pruned_child_keys:
-                child.prune()
+            print "Skipping: "+self.getLocationStr()+", defaulting prediction to 1/"+str(len(pruned_child_keys))+" ["+self.getPredictDefaultStr()+"]"
 
     def prune(self, default_predict=None):
         self.classifier = None
         self.default_predict = default_predict
+        if default_predict is not None and self.children.has_key(default_predict):
+            prunes = self.children.keys()
+            print str(prunes.remove(default_predict)) + " PRUNED FROM CHILDREN LIST"
+            self.children = {default_predict:self.children[default_predict]} # removing other children
+        else:
+            print str(self.children.keys()) + " PRUNED FROM CHILDREN LIST"
+            self.children = {}
 
     def predict(self, x_data):
-        #TODO
-        #x_data is
-        # - in a valid data structure... array etc
-        # - in a valid data format... data type, vectorized
-
+        #TODO validate x_data
         pred_results = []
-        if self.isParent:
-            if self.classifier is not None:
-                if not self.isFitted:
-                    raise NotFittedError("Call fit before predict")
-                pred_results.append(self.classifier.predict(x_data)[0])
-                print "predicting: " + str(pred_results[-1])
-            elif self.default_predict is not None:
-                pred_results.append(self.default_predict)
-                print "predicting: " + str(pred_results[-1]) + " (default)"
-        else:
-            return []
 
-        if self.children.has_key(str(pred_results[-1])):
-            pred_results.extend(self.children[str(pred_results[-1])].predict(x_data))
-        else:
-            raise ValueError("Prediction Value Error by classifier at "+self.getLocationStr())
+        if len(self.children) == 0:
+            return pred_results
+        if len(self.children) == 1:
+            pred_results.append(self.default_predict)
+        if len(self.children) > 1:
+            if self.isFitted:
+                pred_results.append(self.classifier.predict(x_data)[0])
+            else:
+                pred_results.append(self.default_predict)
+
+        if pred_results[-1] not in self.children:
+            raise ValueError("ERROR: predicting unknown child: "+str(pred_results[-1]))
+
+        desc_preds = self.children[str(pred_results[-1])].predict(x_data)
+        if desc_preds is not None:
+            pred_results.extend(desc_preds)
         return pred_results
 
     def getLocationStr(self):
         return str(self.location).encode('ascii', 'ignore')
+
+    def toASCII(self, _str):
+        return _str.encode('ascii', 'ignore')
+
 
     def getPredictDefaultStr(self):
         return self.default_predict.encode('ascii', 'ignore')

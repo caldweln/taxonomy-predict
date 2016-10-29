@@ -1,6 +1,7 @@
 import pandas as pd
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn import  cross_validation, preprocessing, metrics
+import decimal
 from classes import taxonomy as tax
 
 #
@@ -59,8 +60,13 @@ t.fit(x_train)
 preds = t.predict(x_test)
 
 
-#TODO
+#
 # Accuracy Score
 #
+miss_count = 0
+for i in range(0,len(preds)):
+    miss_count += abs(cmp(preds[i],y_test.iloc[i].tolist()))
 
-#print "Score: %0.3f"%(metrics.accuracy_score(y_test, preds))
+miss_count = decimal.Decimal(miss_count)
+pred_count = decimal.Decimal(len(preds))
+print "Perfect predictions: {0:.2f}%".format(100-(miss_count*100/pred_count))

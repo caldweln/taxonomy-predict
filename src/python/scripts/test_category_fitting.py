@@ -3,7 +3,7 @@ import pandas as pd
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn import  cross_validation, preprocessing, metrics
 import decimal
-from classes import taxonomy as tax
+from classes import taxonomy_predict as tp
 
 #
 # Load data
@@ -42,7 +42,7 @@ x_train, x_test, y_train, y_test = cross_validation.train_test_split(feature_vec
 #
 # Init/Fit tree of classifiers
 #
-t = tax.TreeOfClassifiers('Multi-Level Taxonomy')
+t = tp.TreeOfClassifiers('Multi-Level Taxonomy')
 t.fit(x_train)
 
 preds = t.predict(x_test)

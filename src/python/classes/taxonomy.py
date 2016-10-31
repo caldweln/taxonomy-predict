@@ -6,11 +6,11 @@ from sklearn import  cross_validation, preprocessing
 from sklearn import naive_bayes, linear_model, svm, ensemble, neighbors, metrics
 from exceptions import NotFittedError
 
-class TaxonomyTree:
+class TreeOfClassifiers:
 
     def __init__(self, description, moduleName='sklearn.linear_model',classifierName='LogisticRegression',params={'C':1,'class_weight':'balanced'}):
         self.description = description
-        self.root = TaxTreeNode([])
+        self.root = TreeNode([])
         self.root.isRoot = True
 
         self.moduleName = moduleName
@@ -18,7 +18,7 @@ class TaxonomyTree:
         self.params = params
 
     def fit(self, x_indexed_all):
-        res = [self.root.add(TaxTreeNode(list(row.name))) for ix,row in x_indexed_all.iterrows()]
+        res = [self.root.add(TreeNode(list(row.name))) for ix,row in x_indexed_all.iterrows()]
         self.root.initClassifier(self.moduleName, self.classifierName, self.params)
         self.root.fit(x_indexed_all)
 
@@ -67,7 +67,7 @@ class TaxonomyTree:
         self.root.describe()
         print "Taxonomy: " + self.description + " contains "+str(self.root.getDescendentCount()+1)+" nodes, "+str(self.root.getClassifierCount())+" of which have a classifier"
 
-class TaxTreeNode:
+class TreeNode:
     def __init__(self, location):
         self.location = location                # list of parent node labels, in order from top to bottom
         self.children = {}                      # dict of taxonomy tree node, key: last entry in location
@@ -103,7 +103,7 @@ class TaxTreeNode:
             # pass down to next level
             dstNodeLabel = node.location[len(self.location)]
             if not self.children.has_key(dstNodeLabel):
-                self.add(TaxTreeNode(self.location + [dstNodeLabel]))
+                self.add(TreeNode(self.location + [dstNodeLabel]))
             self.children[dstNodeLabel].add(node)
 
     def initClassifier(self, moduleName, classifierName, params):

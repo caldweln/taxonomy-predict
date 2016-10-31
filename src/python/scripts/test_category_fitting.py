@@ -1,3 +1,4 @@
+import os
 import pandas as pd
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn import  cross_validation, preprocessing, metrics
@@ -7,22 +8,9 @@ from classes import taxonomy as tax
 #
 # Load data
 #
-
-#data = {'categories_hierarchy':\
-#[['plant-based-foods','frozen','greens','salads'],\
-#['plant-based-foods','frozen','greens','salads'],\
-##['plant-based-foods','frozen','greens','legumes'],\
-#['plant-based-foods','frozen','greens','legumes']],
-#'feature_bag':\
-#["leafy crispy iceberg lettuce",
-#"leafy spinnach ",
-#"juicy eggplant",
-#"juicy courgettes"]
-#}
-
-#product_df = pd.DataFrame(data)
-#product_df = pd.DataFrame(pd.DataFrame(pd.read_pickle('feature_data.p')).sample(frac=0.1, random_state=8)).reset_index()
-product_df = pd.DataFrame(pd.DataFrame(pd.read_pickle('feature_data.p'))).reset_index()
+data_path = 'data/'
+product_df = pd.DataFrame(pd.DataFrame(pd.read_pickle(os.path.join(data_path, 'feature_data.p'))).sample(frac=0.1)).reset_index()
+#product_df = pd.DataFrame(pd.DataFrame(pd.read_pickle(os.path.join(data_path, 'feature_data.p')))).reset_index()
 
 
 #
@@ -54,7 +42,7 @@ x_train, x_test, y_train, y_test = cross_validation.train_test_split(feature_vec
 #
 # Init/Fit tree of classifiers
 #
-t = tax.TaxonomyTree('Multi-Level Taxonomy')
+t = tax.TreeOfClassifiers('Multi-Level Taxonomy')
 t.fit(x_train)
 
 preds = t.predict(x_test)

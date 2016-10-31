@@ -10,7 +10,8 @@ db_conn_str = 'mongodb://localhost:27017/'
 db_database = "off"
 db_table = "products"
 file_raw_data = '{0}-{1}.p'.format(db_database,  db_table)
-
+data_path = 'data/'
+file_raw_data = os.path.join(data_path, file_raw_data)
 #assumes a local instance of OFF database exists
 #mongorestore --collection products --db off ../dump/off/products.bson
 

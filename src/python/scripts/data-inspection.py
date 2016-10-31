@@ -10,6 +10,8 @@ db_conn_str = 'mongodb://localhost:27017/'
 db_database = "off"
 db_table = "products"
 file_raw_data = '{0}-{1}.p'.format(db_database,  db_table)
+data_path = 'data/'
+file_raw_data = os.path.join(data_path, file_raw_data)
 
 pd.set_option('display.mpl_style', 'default')
 pd.set_option('display.line_width', 5000)
@@ -51,7 +53,7 @@ product_df = product_df.assign(tl_cat = lambda x: categories_df[0][x.index])
 
 product_train_df = product_df[product_df.tl_cat.isin(freq_tl_cats_counts.index.tolist())]
 
-product_train_df[['feature_bag','categories_hierarchy']].to_pickle('feature_data.p')
+product_train_df[['feature_bag','categories_hierarchy']].to_pickle(os.path.join(data_path, 'feature_data.p'))
 
 ##########################
 # preprocessing

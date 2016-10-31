@@ -75,6 +75,9 @@ def extractFeatureData(raw_data_path, feature_file_path):
 #
 # check data already extracted
 #
+if not os.path.exists(data_path):
+    os.makedirs(data_path)
+
 if os.path.isfile(raw_data_path):
     print "Re-using extracted data at: {0}".format(raw_data_path)
 else:

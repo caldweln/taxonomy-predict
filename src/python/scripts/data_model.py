@@ -12,8 +12,8 @@ feature_file_path = os.path.join(data_path, feature_file)
 #
 # Load data
 #
-product_df = pd.DataFrame(pd.DataFrame(pd.read_pickle(feature_file_path)).sample(frac=0.1)).reset_index()
-#product_df = pd.DataFrame(pd.DataFrame(pd.read_pickle(os.path.join(data_path, 'feature_data.p')))).reset_index()
+#product_df = pd.DataFrame(pd.DataFrame(pd.read_pickle(feature_file_path)).sample(frac=0.1)).reset_index()
+product_df = pd.DataFrame(pd.DataFrame(pd.read_pickle(os.path.join(data_path, 'feature_data.p')))).reset_index()
 
 
 #

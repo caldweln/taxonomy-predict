@@ -9,9 +9,11 @@ from sklearn import  cross_validation, preprocessing
 db_conn_str = 'mongodb://localhost:27017/'
 db_database = "off"
 db_table = "products"
-file_raw_data = '{0}-{1}.p'.format(db_database,  db_table)
 data_path = 'data/'
-file_raw_data = os.path.join(data_path, file_raw_data)
+raw_data_file = '{0}-{1}.p'.format(db_database,  db_table)
+raw_data_path = os.path.join(data_path, raw_data_file)
+feature_file = 'feature_data.p'
+feature_file_path = os.path.join(data_path, feature_file)
 
 pd.set_option('display.mpl_style', 'default')
 pd.set_option('display.line_width', 5000)
@@ -21,7 +23,7 @@ figsize = (15, 5)
 #########################
 # data fetch
 
-product_df = pd.DataFrame(pd.read_pickle(file_raw_data))
+product_df = pd.DataFrame(pd.read_pickle(raw_data_path))
 categories_df = pd.DataFrame(product_df['categories_hierarchy'].tolist())
 
 ##########################

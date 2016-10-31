@@ -2,13 +2,16 @@
 db_conn_str = 'mongodb://localhost:27017/'
 db_database = "off"
 db_table = "products"
-file_raw_data = '{0}-{1}.p'.format(db_database,  db_table)
-
+data_path = 'data/'
+raw_data_file = '{0}-{1}.p'.format(db_database,  db_table)
+raw_data_path = os.path.join(data_path, raw_data_file)
+feature_file = 'feature_data.p'
+feature_file_path = os.path.join(data_path, feature_file)
 
 #########################
 # data fetch
 
-data_raw_list = pd.read_pickle(file_raw_data))
+data_raw_list = pd.read_pickle(feature_file_path))
 
 ingredients_list = []
 categories_list = []

@@ -3,15 +3,17 @@ from pymongo import MongoClient
 import pickle
 import time
 
-#########################
+#
 # data extract
-
+#
 db_conn_str = 'mongodb://localhost:27017/'
 db_database = "off"
 db_table = "products"
-file_raw_data = '{0}-{1}.p'.format(db_database,  db_table)
 data_path = 'data/'
-file_raw_data = os.path.join(data_path, file_raw_data)
+raw_data_file = '{0}-{1}.p'.format(db_database,  db_table)
+raw_data_path = os.path.join(data_path, raw_data_file)
+feature_file = 'feature_data.p'
+feature_file_path = os.path.join(data_path, feature_file)
 #assumes a local instance of OFF database exists
 #mongorestore --collection products --db off ../dump/off/products.bson
 
@@ -44,7 +46,20 @@ print "Loaded {0} {1} records".format(len(data_raw), db_table)
 
 print "Time taken {0:.2f} seconds: ".format(time.time() - start_time)
 
-pickle.dump(data_raw, open(file_raw_data, 'wb'))
+#
+# save raw data
+#
+pickle.dump(data_raw, open(raw_data_path, 'wb'))
 
-print "Saved {0} data to {1}".format(db_table, file_raw_data)
-print "-------------------------------------------------------"
+print "Saved raw data to {1}".format(raw_data_path)
+
+#
+# save feature data
+#
+product_df = pd.DataFrame(data_raw)
+
+product_df['feature_bag'] = product_df.product_name + ' ' + product_df.brands + ' ' + product_df.quantity + ' ' + product_df.ingredients_text
+
+product_train_df[['feature_bag','categories_hierarchy']].to_pickle(feature_file_path)
+
+print "Saved feature data to {1}".format(feature_file_path)

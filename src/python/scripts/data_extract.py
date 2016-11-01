@@ -44,6 +44,7 @@ def extractRawData(db_conn_str, db_database, db_table, data_path):
         'product_name':{'$exists':'true','$ne':''}, \
         'brands':{'$exists':'true','$ne':''}, \
         'quantity':{'$exists':'true','$ne':''}, \
+        'lang':{'$exists':'true','$eq':'fr'}, \
         'ingredients_text':{'$exists':'true','$ne':''}
         }, \
         {"_id":1,"product_name":1,"brands":1,"quantity":1,"ingredients_text":1,"categories_hierarchy":1}))

@@ -13,7 +13,7 @@ feature_file_path = os.path.join(data_path, feature_file)
 # Load data
 #
 #product_df = pd.DataFrame(pd.DataFrame(pd.read_pickle(feature_file_path)).sample(frac=0.1)).reset_index()
-product_df = pd.DataFrame(pd.DataFrame(pd.read_pickle(os.path.join(data_path, 'feature_data.p')))).reset_index()
+product_df = pd.DataFrame(pd.DataFrame(pd.read_pickle(feature_file_path))).reset_index()
 
 
 #
@@ -45,7 +45,10 @@ x_train, x_test, y_train, y_test = cross_validation.train_test_split(feature_vec
 #
 # Init/Fit tree of classifiers
 #
-t = tp.TreeOfClassifiers('Multi-Level Taxonomy')
+moduleName='sklearn.linear_model'
+classifierName='LogisticRegression'
+params={'C':1,'class_weight':'balanced'}
+t = tp.TreeOfClassifiers('Multi-Level Taxonomy', moduleName, classifierName, params)
 t.fit(x_train)
 
 preds = t.predict(x_test)

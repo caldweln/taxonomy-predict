@@ -55,9 +55,20 @@ preds = t.predict(x_test)
 # Accuracy Score
 #
 miss_count = 0
+level_miss_counts = []
 for i in range(0,len(preds)):
     miss_count += abs(cmp(preds[i],y_test.iloc[i].tolist()))
+    for j in range(0,len(preds[i])):
+        if len(level_miss_counts) <= j:
+            level_miss_counts.append(0)
+        if preds[i][j] != y_test.iloc[i].tolist()[j]:
+            for k in range(j,len(preds[i])):
+                level_miss_counts[k] += 1
+            break # one bad prediction causes misses for rest of prediction chain
 
 miss_count = decimal.Decimal(miss_count)
 pred_count = decimal.Decimal(len(preds))
 print "Perfect predictions: {0:.2f}%".format(100-(miss_count*100/pred_count))
+for i in range(0,len(level_miss_counts)):
+    miss_count = decimal.Decimal(level_miss_counts[i])
+    print "Accuracy at level {0}: {1:.2f}%".format(i, 100-(miss_count*100/pred_count))

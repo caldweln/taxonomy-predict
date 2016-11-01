@@ -8,6 +8,8 @@ from classes import taxonomy_predict as tp
 data_path = 'data/'
 feature_file = 'feature_data.p'
 feature_file_path = os.path.join(data_path, feature_file)
+model_file = 'fitted_model.p'
+model_file_path = os.path.join(data_path, model_file)
 
 #
 # Load data
@@ -51,12 +53,16 @@ params={'C':1,'class_weight':'balanced'}
 t = tp.TreeOfClassifiers('Multi-Level Taxonomy', moduleName, classifierName, params)
 t.fit(x_train)
 
+#
+# save fitted model
+#
+pickle.dump(t, open(model_file_path, 'wb'))
+
+#
+# score on validation data
+#
 preds = t.predict(x_test)
 
-
-#
-# Accuracy Score
-#
 miss_count = 0
 level_miss_counts = []
 for i in range(0,len(preds)):

@@ -60,7 +60,8 @@ preds = t.predict(x_test)
 miss_count = 0
 level_miss_counts = []
 for i in range(0,len(preds)):
-    miss_count += abs(cmp(preds[i],y_test.iloc[i].tolist()))
+    if abs(cmp(preds[i],y_test.iloc[i].tolist())) > 0:
+        miss_count += 1
     for j in range(0,len(preds[i])):
         if len(level_miss_counts) <= j:
             level_miss_counts.append(0)

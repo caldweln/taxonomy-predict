@@ -9,20 +9,45 @@ import os.path
 db_conn_str = 'mongodb://localhost:27017/'
 db_database = "off"
 db_table = "products"
-data_path = 'data/'
-raw_data_file = '{0}-{1}.p'.format(db_database,  db_table)
-raw_data_path = os.path.join(data_path, raw_data_file)
-feature_file = 'feature_data.p'
-feature_file_path = os.path.join(data_path, feature_file)
 #assumes a local instance of OFF database exists
 #mongorestore --collection products --db off ../dump/off/products.bson
 
-def extractRawData(db_conn_str, db_database, db_table, data_path):
+data_path = 'data/'
+raw_data_file = 'raw_data.p'
+raw_data_path = os.path.join(data_path, raw_data_file)
+tbc_data_file = 'raw_data-tbc.p'
+tbc_data_path = os.path.join(data_path, tbc_data_file)
+feature_file = 'feature_data.p'
+feature_file_path = os.path.join(data_path, feature_file)
+tbc_feature_file = 'feature_data-tbc.p'
+tbc_feature_file_path = os.path.join(data_path, tbc_feature_file)
 
-    raw_data_file = '{0}-{1}.p'.format(db_database,  db_table)
-    raw_data_path = os.path.join(data_path, raw_data_file)
+#
+# query objects for extracting uncategorized & categorized datasets
+#
+find_where_tbc = { \
+    'categories_hierarchy':{'$exists':'true', '$eq':[]}, \
+    'product_name':{'$exists':'true','$ne':''}, \
+    'brands':{'$exists':'true','$ne':''}, \
+    'quantity':{'$exists':'true','$ne':''}, \
+    'lang':{'$exists':'true','$eq':'fr'}, \
+    'ingredients_text':{'$exists':'true','$ne':''}
+    }
+find_where_categorized = { \
+    'categories_hierarchy':{'$exists':'true', '$ne':[]}, \
+    'product_name':{'$exists':'true','$ne':''}, \
+    'brands':{'$exists':'true','$ne':''}, \
+    'quantity':{'$exists':'true','$ne':''}, \
+    'lang':{'$exists':'true','$eq':'fr'}, \
+    'ingredients_text':{'$exists':'true','$ne':''}
+    }
+find_select_fields = {"_id":1,"product_name":1,"brands":1,"quantity":1,"ingredients_text":1,"categories_hierarchy":1}
+
+
+def extract_db_data(db_conn_str, db_database, db_table, file_path, find_where, find_select):
+
     #
-    # data extract
+    # db connect
     #
     start_time = time.time()
 
@@ -38,27 +63,22 @@ def extractRawData(db_conn_str, db_database, db_table, data_path):
 
     products = db[db_table]
 
+    #
+    # data query
+    #
     data_raw  = []
-    data_raw = list(products.find({ \
-        'categories_hierarchy':{'$exists':'true', '$ne':[]}, \
-        'product_name':{'$exists':'true','$ne':''}, \
-        'brands':{'$exists':'true','$ne':''}, \
-        'quantity':{'$exists':'true','$ne':''}, \
-        'lang':{'$exists':'true','$eq':'fr'}, \
-        'ingredients_text':{'$exists':'true','$ne':''}
-        }, \
-        {"_id":1,"product_name":1,"brands":1,"quantity":1,"ingredients_text":1,"categories_hierarchy":1}))
+    data_raw = list(products.find(find_where, find_select))
 
     print "Loaded {0} {1} records".format(len(data_raw), db_table)
 
     print "Time taken {0:.2f} seconds".format(time.time() - start_time)
 
     #
-    # save raw data
+    # save result data
     #
-    pickle.dump(data_raw, open(raw_data_path, 'wb'))
+    pickle.dump(data_raw, open(file_path, 'wb'))
 
-    print "Saved raw data to {0}".format(raw_data_path)
+    print "Saved data to {0}".format(file_path)
 
 def extractFeatureData(raw_data_path, feature_file_path):
     #
@@ -79,10 +99,20 @@ def extractFeatureData(raw_data_path, feature_file_path):
 if not os.path.exists(data_path):
     os.makedirs(data_path)
 
+if os.path.isfile(tbc_data_path):
+    print "Re-using extracted data at: {0}".format(tbc_data_path)
+else:
+    extract_db_data(db_conn_str, db_database, db_table, tbc_data_path, find_where_tbc, find_select_fields)
+
+if os.path.isfile(tbc_feature_file_path):
+    print "Re-using extracted data at: {0}".format(tbc_feature_file_path)
+else:
+    extractFeatureData(tbc_data_path, tbc_feature_file_path)
+
 if os.path.isfile(raw_data_path):
     print "Re-using extracted data at: {0}".format(raw_data_path)
 else:
-    extractRawData(db_conn_str, db_database, db_table, data_path)
+    extract_db_data(db_conn_str, db_database, db_table, raw_data_path, find_where_categorized, find_select_fields)
 
 if os.path.isfile(feature_file_path):
     print "Re-using extracted data at: {0}".format(feature_file_path)

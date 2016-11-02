@@ -1,4 +1,5 @@
 
+import pickle
 import numpy as np
 import pandas as pd
 import scipy.sparse as sp
@@ -6,14 +7,12 @@ import matplotlib.pyplot as plt
 from collections import Counter
 from sklearn import  cross_validation, preprocessing
 
-db_conn_str = 'mongodb://localhost:27017/'
-db_database = "off"
-db_table = "products"
 data_path = 'data/'
-raw_data_file = '{0}-{1}.p'.format(db_database,  db_table)
+raw_data_file = 'raw_data.p'
 raw_data_path = os.path.join(data_path, raw_data_file)
-feature_file = 'feature_data.p'
+feature_file = 'feature_data-x.p'
 feature_file_path = os.path.join(data_path, feature_file)
+
 
 pd.set_option('display.mpl_style', 'default')
 pd.set_option('display.line_width', 5000)
@@ -55,7 +54,7 @@ product_df = product_df.assign(tl_cat = lambda x: categories_df[0][x.index])
 
 product_train_df = product_df[product_df.tl_cat.isin(freq_tl_cats_counts.index.tolist())]
 
-product_train_df[['feature_bag','categories_hierarchy']].to_pickle(os.path.join(data_path, 'feature_data.p'))
+product_train_df[['feature_bag','categories_hierarchy']].to_pickle(feature_file_path)
 
 ##########################
 # preprocessing

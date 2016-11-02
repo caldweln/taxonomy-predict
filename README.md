@@ -46,3 +46,13 @@ MultinomialNB, params={'alpha':1}
   - RAM up to 32Gb required for some classifiers
  - validation
   - a validation set of 25% of the dataset is used to calculate results
+
+## Maybe sometime soon
+
+ - variable length categorization
+ - uni-code support
+ - minimum confidence thresholds
+
+# Disclaimer
+
+No warranties, provided 'AS-IS'.

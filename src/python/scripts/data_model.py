@@ -1,4 +1,5 @@
 import os
+import pickle
 import pandas as pd
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn import  cross_validation, preprocessing, metrics
@@ -10,6 +11,8 @@ feature_file = 'feature_data.p'
 feature_file_path = os.path.join(data_path, feature_file)
 model_file = 'fitted_model.p'
 model_file_path = os.path.join(data_path, model_file)
+vectorizer_file = 'fitted_vectorizer.p'
+vectorizer_file_path = os.path.join(data_path, vectorizer_file)
 
 #
 # Load data
@@ -38,6 +41,11 @@ arrays=categories_df.transpose().as_matrix()
 vectorizer = CountVectorizer(ngram_range=(1,1), stop_words='english')
 vectorizer.fit(features_df['feature_bag'])
 feature_vectors = pd.DataFrame(vectorizer.transform(features_df['feature_bag']).toarray(), index= pd.MultiIndex.from_tuples(list(zip(*arrays))))
+
+#
+# Save vectorizer
+#
+pickle.dump(vectorizer, open(vectorizer_file_path, 'wb'))
 
 #
 # Split for validation

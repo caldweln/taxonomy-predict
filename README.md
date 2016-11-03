@@ -2,7 +2,9 @@
 
 A tool to predict a suitable place for a product in an existing taxonomy.
 
-Using data extracted from a product database, taxonomy-predict fits a tree of classifiers to the already categorized products. This tree can then be used to classify un-categoried products.
+Using data extracted from a product database, taxonomy-predict fits a tree of classifiers to the already categorized products.
+
+This tree can then be used to classify un-categoried products.
 
 This is a work in progress, preliminary results below.
 
@@ -36,17 +38,15 @@ MultinomialNB, params={'alpha':1}
 
 
 ## Notes
-
- - training
-  - considered only products marked with lang='fr'
-  - all non-ASCII characters are dropped
-  - only product category hierarchies of length of 5 are considered
-    - shorter hierarchies are dropped
-    - longer hierarchies are truncated
-  - LogisticRegression requires less than 8Gb of RAM on OFF data
-    - however others may use up to 32Gb of RAM on the same data
- - validation
-  - a validation set of 25% of the dataset is used to calculate results
+- results obtained on a [Open Food Facts](http://world.openfoodfacts.org/data) mongodb data dump
+- considered only products marked with lang='fr'
+- all non-ASCII characters are dropped
+- only product category hierarchies of length of 5 are considered
+  - shorter hierarchies are dropped
+  - longer hierarchies are truncated
+- LogisticRegression requires less than 8Gb of RAM on OFF data
+  - however others may use up to 32Gb of RAM on the same data
+- a validation set of 25% of the dataset is used to calculate results
 
 ## Maybe sometime soon
 

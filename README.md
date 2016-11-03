@@ -14,7 +14,7 @@ See [setup.txt](https://github.com/caldweln/taxonomy-predict/blob/master/setup.t
 
 | Classifier \ Accuracy | @Level 0 | @Level 1 | @Level 2 | @Level 3 | @Level 4 |
 | ----------------------|----------|----------|----------|----------|----------|
-| LogisticRegression    |  88.67%  |  85.16%  |  77.69%  |  71.83%  |  71.83%  |
+| LogisticRegression    |  88.67%  |  85.16%  |  77.69%  |  71.83%  |  65.96%  |
 | LinearSVC             |  87.85%  |  84.44%  |  76.79%  |  71.09%  |  65.32%  |
 | RandomForestClassifier|  87.48%  |  83.94%  |  75.07%  |  69.00%  |  62.56%  |
 | KNeighborsClassifier  |  82.26%  |  77.84%  |  68.21%  |  61.78%  |  55.09%  |

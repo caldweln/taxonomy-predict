@@ -43,7 +43,8 @@ MultinomialNB, params={'alpha':1}
   - only product category hierarchies of length of 5 are considered
     - shorter hierarchies are dropped
     - longer hierarchies are truncated
-  - RAM up to 32Gb required for some classifiers
+  - LogisticRegression requires less than 8Gb of RAM on OFF data
+    - however others may use up to 32Gb of RAM on the same data
  - validation
   - a validation set of 25% of the dataset is used to calculate results
 

@@ -17,8 +17,8 @@ fitted_vectorizer_path = os.path.join(config.fs['data_path'], config.fs['fitted_
 #
 # Load data
 #
-product_df = pd.DataFrame(pd.DataFrame(pd.read_pickle(categorized_features_path)).sample(frac=0.1)).reset_index()
-#product_df = pd.DataFrame(pd.DataFrame(pd.read_pickle(categorized_features_path))).reset_index()
+#product_df = pd.DataFrame(pd.DataFrame(pd.read_pickle(categorized_features_path)).sample(frac=0.1)).reset_index()
+product_df = pd.DataFrame(pd.DataFrame(pd.read_pickle(categorized_features_path))).reset_index()
 
 
 #

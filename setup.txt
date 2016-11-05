@@ -43,5 +43,6 @@ smart-open==1.3.4
 git clone https://github.com/caldweln/taxonomy-predict.git
 cd taxonomy-predict
 
-python src/python/main.py
+python src/python/extract.py
+python src/python/model.py
 python src/python/predict.py

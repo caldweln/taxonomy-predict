@@ -5,20 +5,20 @@ from sklearn.feature_extraction.text import CountVectorizer
 from sklearn import  cross_validation, preprocessing, metrics
 import decimal
 from classes import taxonomy_predict as tp
+from etc import config_openfoodfacts as config
 
-data_path = 'data/'
-feature_file = 'feature_data.p'
-feature_file_path = os.path.join(data_path, feature_file)
-model_file = 'fitted_model.p'
-model_file_path = os.path.join(data_path, model_file)
-vectorizer_file = 'fitted_vectorizer.p'
-vectorizer_file_path = os.path.join(data_path, vectorizer_file)
+categorized_docs_path = os.path.join(config.fs['data_path'], config.fs['categorized_docs'])
+uncategorized_docs_path = os.path.join(config.fs['data_path'], config.fs['uncategorized_docs'])
+categorized_features_path = os.path.join(config.fs['data_path'], config.fs['categorized_features'])
+uncategorized_features_path = os.path.join(config.fs['data_path'], config.fs['uncategorized_features'])
+fitted_model_path = os.path.join(config.fs['data_path'], config.fs['fitted_model'])
+fitted_vectorizer_path = os.path.join(config.fs['data_path'], config.fs['fitted_vectorizer'])
 
 #
 # Load data
 #
-#product_df = pd.DataFrame(pd.DataFrame(pd.read_pickle(feature_file_path)).sample(frac=0.1)).reset_index()
-product_df = pd.DataFrame(pd.DataFrame(pd.read_pickle(feature_file_path))).reset_index()
+product_df = pd.DataFrame(pd.DataFrame(pd.read_pickle(categorized_features_path)).sample(frac=0.1)).reset_index()
+#product_df = pd.DataFrame(pd.DataFrame(pd.read_pickle(categorized_features_path))).reset_index()
 
 
 #
@@ -45,7 +45,7 @@ feature_vectors = pd.DataFrame(vectorizer.transform(features_df['feature_bag']).
 #
 # Save vectorizer
 #
-pickle.dump(vectorizer, open(vectorizer_file_path, 'wb'))
+pickle.dump(vectorizer, open(fitted_vectorizer_path, 'wb'))
 
 #
 # Split for validation
@@ -55,16 +55,13 @@ x_train, x_test, y_train, y_test = cross_validation.train_test_split(feature_vec
 #
 # Init/Fit tree of classifiers
 #
-moduleName='sklearn.linear_model'
-classifierName='LogisticRegression'
-params={'C':1,'class_weight':'balanced'}
-t = tp.TreeOfClassifiers('Multi-Level Taxonomy', moduleName, classifierName, params)
+t = tp.TreeOfClassifiers('Multi-Level Taxonomy', config.op['classifier_module'], config.op['classifier_name'], config.op['classifier_params'])
 t.fit(x_train)
 
 #
 # save fitted model
 #
-pickle.dump(t, open(model_file_path, 'wb'))
+pickle.dump(t, open(fitted_model_path, 'wb'))
 
 #
 # score on validation data

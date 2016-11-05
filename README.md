@@ -23,7 +23,13 @@ See [setup.txt](https://github.com/caldweln/taxonomy-predict/blob/master/setup.t
 | MultinomialNB         |  80.91%  |  74.10%  |  62.29%  |  54.15%  |  45.23%  |
 
 
-## Classifier configuration
+## Configuration
+
+Configuration is possible through the Configuration file at [etc/config_openfoodfacts]
+
+Where you configure the classifier used, file locations and database settings.
+
+Results were achieved with the following classifier configurations:
 
 LogisticRegression, params={'C':1,'class_weight':'balanced'}
 

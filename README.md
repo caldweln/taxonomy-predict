@@ -25,12 +25,13 @@ See [setup.txt](https://github.com/caldweln/taxonomy-predict/blob/master/setup.t
 
 ## Configuration
 
-Configuration is possible through the Configuration file at [etc/config_openfoodfacts]
+Configuration is possible through the Configuration file at [etc/config_openfoodfacts](https://github.com/caldweln/taxonomy-predict/blob/master/src/python/etc/config_openfoodfacts.py).
 
-Where you configure the classifier used, file locations and database settings.
+Where you can configure the classifier to be used, file locations and database settings.
 
 Results were achieved with the following classifier configurations:
 
+```
 LogisticRegression, params={'C':1,'class_weight':'balanced'}
 
 LinearSVC, params={'C':1,'class_weight':'balanced'}
@@ -40,7 +41,7 @@ RandomForestClassifier,params={'n_estimators':100}
 KNeighborsClassifier, params={'n_neighbors':4}
 
 MultinomialNB, params={'alpha':1}
-
+```
 
 
 ## Notes

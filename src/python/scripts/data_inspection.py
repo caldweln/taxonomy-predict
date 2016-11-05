@@ -4,15 +4,11 @@ import numpy as np
 import pandas as pd
 import scipy.sparse as sp
 import matplotlib.pyplot as plt
-from collections import Counter
-from sklearn import  cross_validation, preprocessing
 
-data_path = 'data/'
-raw_data_file = 'raw_data.p'
-raw_data_path = os.path.join(data_path, raw_data_file)
-feature_file = 'feature_data-x.p'
-feature_file_path = os.path.join(data_path, feature_file)
+from scripts import extract_openfoodfacts as extractor
+from etc import config_openfoodfacts as config
 
+categorized_docs_path = os.path.join(config.fs['data_path'], config.fs['categorized_docs'])
 
 pd.set_option('display.mpl_style', 'default')
 pd.set_option('display.line_width', 5000)
@@ -20,9 +16,16 @@ pd.set_option('display.max_columns', 60)
 figsize = (15, 5)
 
 #
+# data extract
+#
+extractor.run()
+
+#
 # data fetch
 #
-product_df = pd.DataFrame(pd.read_pickle(raw_data_path))
+product_df = pd.DataFrame(pd.read_pickle(categorized_docs_path))
+product_df.columns
+
 categories_df = pd.DataFrame(product_df['categories_hierarchy'].tolist())
 
 #

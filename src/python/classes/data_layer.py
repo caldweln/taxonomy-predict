@@ -54,3 +54,23 @@ class DataLayer:
         pickle.dump(db_documents, open(file_path, 'wb'))
 
         print "Saved documents to {0}".format(file_path)
+
+
+    def update_db_data(self, db_collection, index_field, update_field, update_data, db_conn_str=None, db_database=None):
+
+        if db_conn_str is not None and db_database is not None:
+            self.db_connect(db_conn_str, db_database)
+
+        if db_collection not in self.db.collection_names():
+            print("collection list: " + str(self.db.collection_names()))
+            raise ValueError("requested collection not found")
+
+        collection = self.db[db_collection]
+        match_count = 0
+        update_count = 0
+        for update in update_data:
+            result = collection.update_one({index_field:update[index_field]},{'$set':{update_field:update[update_field]}})
+            match_count += result.matched_count
+            update_count += result.modified_count
+
+        print "{0}.{1} updated/matched {2}/{3}".format(db_collection, update_field, update_count, match_count)

@@ -46,3 +46,4 @@ cd taxonomy-predict
 python src/python/extract.py
 python src/python/model.py
 python src/python/predict.py
+python src/python/update.py

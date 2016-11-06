@@ -18,7 +18,10 @@ db = dict(
         'lang':{'$exists':'true','$eq':'fr'}, \
         'ingredients_text':{'$exists':'true','$ne':''} \
         },
-    find_select_fields = {"_id":1,"product_name":1,"brands":1,"quantity":1,"ingredients_text":1,"categories_hierarchy":1}
+    find_select_fields = {"_id":1,"product_name":1,"brands":1,"quantity":1,"ingredients_text":1,"categories_hierarchy":1},
+    update_filter_field = "_id",
+    update_update_field = "test_categories_hierarchy"
+
     )
 
 fs = dict(

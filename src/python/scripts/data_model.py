@@ -22,7 +22,7 @@ product_df = pd.DataFrame(pd.DataFrame(pd.read_pickle(categorized_features_path)
 
 
 #
-# Filter data with at least 5 categories, and only consider up to this category depth
+# Filter data with at least 5 categories
 #
 categories_df = pd.DataFrame(product_df['categories_hierarchy'].tolist())
 categories_df = categories_df[categories_df.columns[:5]].dropna()

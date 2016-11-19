@@ -151,8 +151,11 @@ class TreeNode:
         #
         # Which of the data applies to this node
         #
-        if len(self.location) > 0:
-            y_local = y_all[ y_all[ y_all.columns[:len(self.location)] ].isin( tuple(self.location) ).all(1) ]
+        if len(self.location) > 1:
+            y_local = y_all.groupby(y_all.columns[:len(self.location)].tolist()).get_group(tuple(self.location))
+            x_local = x_all[x_all.index.isin(y_local.index)]
+        elif len(self.location) == 1:
+            y_local = y_all.groupby(y_all.columns[0]).get_group(self.location[0])
             x_local = x_all[x_all.index.isin(y_local.index)]
         else:
             y_local = y_all
@@ -182,7 +185,6 @@ class TreeNode:
             if len(set(x_fit.index.tolist()) - set(y_fit.index.tolist())) > 0:
                 raise ValueError('BAD ERROR - data mismatch to fit classifier')
 
-            #y_fit.to_csv('debug/y_fit_'+self.getLocationStr()+'.csv')
             self.classifier.fit(x_fit, y_fit[len(self.location)])
             self.isFitted = True
             self.local_accuracy = 1.0 #metrics.accuracy_score(y_test, preds)

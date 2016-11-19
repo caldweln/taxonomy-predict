@@ -28,23 +28,23 @@ categories_df = pd.DataFrame(product_df['categories_hierarchy'].tolist())
 categories_df = categories_df[categories_df.columns[:5]].dropna()
 features_df = pd.DataFrame(product_df['feature_bag'])[product_df.index.isin(categories_df.index)]
 
+categories_df = pd.DataFrame(product_df['categories_hierarchy'].tolist())[product_df.index.isin(categories_df.index)]
+
+
 #
 # Strip out non-ASCII
 #
-categories_df = categories_df.applymap(lambda x: x.encode('ascii','ignore'))
+categories_df = categories_df.applymap(lambda x: x.encode('ascii','ignore') if x is not None else None)
 features_df = features_df.applymap(lambda x: x.encode('ascii','ignore'))
 
 #
-# Init multi-categorized features
+# Vectorize features
 #
-arrays=categories_df.transpose().as_matrix()
-vectorizer = CountVectorizer(ngram_range=(1,1), stop_words='english')
-vectorizer.fit(features_df['feature_bag'])
-feature_vectors = pd.DataFrame(vectorizer.transform(features_df['feature_bag']).toarray(), index= pd.MultiIndex.from_tuples(list(zip(*arrays))))
+if len(set(categories_df.index.tolist()) - set(features_df.index.tolist())) > 0:
+    raise ValueError('ERROR - data mismatch to fit model')
 
-#
-# Save vectorizer
-#
+vectorizer = CountVectorizer(ngram_range=(1,1), stop_words='english')
+feature_vectors = pd.DataFrame(vectorizer.fit_transform(features_df['feature_bag']).toarray(), index=categories_df.index)
 pickle.dump(vectorizer, open(fitted_vectorizer_path, 'wb'))
 
 #
@@ -56,7 +56,7 @@ x_train, x_test, y_train, y_test = cross_validation.train_test_split(feature_vec
 # Init/Fit tree of classifiers
 #
 t = tp.TreeOfClassifiers('Multi-Level Taxonomy', config.op['classifier_module'], config.op['classifier_name'], config.op['classifier_params'])
-t.fit(x_train)
+t.fit(x_train, y_train)
 
 #
 # save fitted model

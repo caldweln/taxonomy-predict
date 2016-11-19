@@ -17,10 +17,11 @@ class TreeOfClassifiers:
         self.classifierName = classifierName
         self.params = params
 
-    def fit(self, x_indexed_all):
-        res = [self.root.add(TreeNode(list(row.name))) for ix,row in x_indexed_all.iterrows()]
+    def fit(self, x_all, y_all):
+        res = [self.root.add(TreeNode(list(row.dropna()))) for ix,row in y_all.iterrows()]
         self.root.initClassifier(self.moduleName, self.classifierName, self.params)
-        self.root.fit(x_indexed_all)
+        self.root.fit(x_all, y_all)
+
 
     def predict(self, x_data):
         results = []
@@ -97,8 +98,9 @@ class TreeNode:
 
         if cmp(node.location[:-1], self.location) == 0:
             # keep at this level
-            print "Adding child at "+self.getLocationStr()
-            self.children[node.location[-1]] = node
+            if not self.children.has_key(node.location[-1]):
+                print "Adding child at "+self.getLocationStr()
+                self.children[node.location[-1]] = node
         else:
             # pass down to next level
             dstNodeLabel = node.location[len(self.location)]
@@ -138,40 +140,33 @@ class TreeNode:
                 result.extend(descendentResults)
         return result
 
-    def fit(self, x_indexed_all):
+    def fit(self, x_all, y_all):
         if len(self.children) <= 0:
             return
         #
         # fit child classifiers
         #
         for child in self.children.values():
-            child.fit(x_indexed_all) #maybe just pass x_fit
+            child.fit(x_all, y_all) #maybe just pass x_fit
         #
         # Which of the data applies to this node
         #
         if len(self.location) > 0:
-            x_local = x_indexed_all.ix[tuple(self.location)]
+            y_local = y_all[ y_all[ y_all.columns[:len(self.location)] ].isin( tuple(self.location) ).all(1) ]
+            x_local = x_all[x_all.index.isin(y_local.index)]
         else:
-            x_local = x_indexed_all
-
-        if type(x_local.index) is pd.indexes.multi.MultiIndex:
-            y_local = pd.Series(x_local.index.get_level_values(0).base)
-        else:
-            y_local = pd.Series(x_local.index.base)
+            y_local = y_all
+            x_local = x_all
 
         #
         #
-        #
-        x_local = pd.DataFrame(x_local).set_index(y_local.index)
-        #
-        #
-        #
-        y_fit=y_local.groupby(y_local).filter(lambda x: len(x) >= self.min_per_class_sample_count)
+        y_fit=y_local.groupby(list(y_local.columns[:len(self.location)+1])).filter(lambda x: len(x) >= self.min_per_class_sample_count)
         x_fit=x_local[x_local.index.isin(y_fit.index)]
         #
         # Is there any classes remaining
         #
-        pruned_child_keys = pd.unique(y_fit.ravel())
+        #
+        pruned_child_keys = y_fit[len(self.location)].dropna().unique()
 
         if len(pruned_child_keys) <= 0:
             print "Pruning "+self.getLocationStr()+", not enough samples for any children!"
@@ -184,8 +179,11 @@ class TreeNode:
             # fit the classifier
             #
             print "Fitting: "+self.getLocationStr()
+            if len(set(x_fit.index.tolist()) - set(y_fit.index.tolist())) > 0:
+                raise ValueError('BAD ERROR - data mismatch to fit classifier')
+
             #y_fit.to_csv('debug/y_fit_'+self.getLocationStr()+'.csv')
-            self.classifier.fit(x_fit, y_fit)
+            self.classifier.fit(x_fit, y_fit[len(self.location)])
             self.isFitted = True
             self.local_accuracy = 1.0 #metrics.accuracy_score(y_test, preds)
             self.local_f1_score = 1.0 #metrics.f1_score(y_test, preds, average='macro')

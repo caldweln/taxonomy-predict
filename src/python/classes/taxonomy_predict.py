@@ -1,8 +1,6 @@
 import pandas as pd
 import numpy as np
 import codecs
-from sklearn.feature_extraction.text import CountVectorizer
-from sklearn import  cross_validation, preprocessing
 from sklearn import naive_bayes, linear_model, svm, ensemble, neighbors, metrics
 from exceptions import NotFittedError
 
@@ -18,8 +16,10 @@ class TreeOfClassifiers:
         self.params = params
 
     def fit(self, x_all, y_all):
+        print "Building tree of classifiers"
         res = [self.root.add(TreeNode(list(row.dropna()))) for ix,row in y_all.iterrows()]
         self.root.initClassifier(self.moduleName, self.classifierName, self.params)
+        print "Fitting to data"
         self.root.fit(x_all, y_all)
 
 
@@ -99,7 +99,7 @@ class TreeNode:
         if cmp(node.location[:-1], self.location) == 0:
             # keep at this level
             if not self.children.has_key(node.location[-1]):
-                print "Adding child at "+self.getLocationStr()
+                #print "Adding child at "+self.getLocationStr()
                 self.children[node.location[-1]] = node
         else:
             # pass down to next level
@@ -172,7 +172,7 @@ class TreeNode:
         pruned_child_keys = y_fit[len(self.location)].dropna().unique()
 
         if len(pruned_child_keys) <= 0:
-            print "Pruning "+self.getLocationStr()+", not enough samples for any children!"
+            #print "Pruning "+self.getLocationStr()+", not enough samples for any children!"
             self.prune()
             return #prune this entire branch
 
@@ -181,7 +181,7 @@ class TreeNode:
             #
             # fit the classifier
             #
-            print "Fitting: "+self.getLocationStr()
+            #print "Fitting: "+self.getLocationStr()
             if len(set(x_fit.index.tolist()) - set(y_fit.index.tolist())) > 0:
                 raise ValueError('BAD ERROR - data mismatch to fit classifier')
 
@@ -192,17 +192,17 @@ class TreeNode:
 
         else:
             self.prune(pruned_child_keys[0])
-            print "Skipping: "+self.getLocationStr()+", defaulting prediction to 1/"+str(len(pruned_child_keys))+" ["+self.getPredictDefaultStr()+"]"
+            #print "Skipping: "+self.getLocationStr()+", defaulting prediction to 1/"+str(len(pruned_child_keys))+" ["+self.getPredictDefaultStr()+"]"
 
     def prune(self, default_predict=None):
         self.classifier = None
         self.default_predict = default_predict
         if default_predict is not None and self.children.has_key(default_predict):
             prunes = self.children.keys()
-            print str(prunes.remove(default_predict)) + " PRUNED FROM CHILDREN LIST"
+            #print str(prunes.remove(default_predict)) + " PRUNED FROM CHILDREN LIST"
             self.children = {default_predict:self.children[default_predict]} # removing other children
         else:
-            print str(self.children.keys()) + " PRUNED FROM CHILDREN LIST"
+            #print str(self.children.keys()) + " PRUNED FROM CHILDREN LIST"
             self.children = {}
 
     def predict(self, x_data):
@@ -215,7 +215,7 @@ class TreeNode:
             pred_results.append(self.default_predict)
         if len(self.children) > 1:
             if self.isFitted:
-                pred_results.append(self.classifier.predict(x_data)[0])
+                pred_results.append(self.classifier.predict(x_data.as_matrix().reshape(1,-1))[0])
             else:
                 pred_results.append(self.default_predict)
 

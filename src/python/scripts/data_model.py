@@ -2,7 +2,7 @@ import os
 import pickle
 import pandas as pd
 from sklearn.feature_extraction.text import CountVectorizer
-from sklearn import  cross_validation, preprocessing, metrics
+from sklearn import  model_selection, preprocessing, metrics
 import decimal
 from classes import taxonomy_predict as tp
 from etc import config_openfoodfacts as config
@@ -50,7 +50,7 @@ pickle.dump(vectorizer, open(fitted_vectorizer_path, 'wb'))
 #
 # Split for validation
 #
-x_train, x_test, y_train, y_test = cross_validation.train_test_split(feature_vectors, categories_df, train_size=0.75,random_state=123)
+x_train, x_test, y_train, y_test = model_selection.train_test_split(feature_vectors, categories_df, train_size=0.75,random_state=123)
 
 #
 # Init/Fit tree of classifiers

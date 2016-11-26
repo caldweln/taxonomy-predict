@@ -30,20 +30,13 @@ features_df = pd.DataFrame(product_df['feature_bag'])[product_df.index.isin(cate
 
 categories_df = pd.DataFrame(product_df['categories_hierarchy'].tolist())[product_df.index.isin(categories_df.index)]
 
-
-#
-# Strip out non-ASCII
-#
-categories_df = categories_df.applymap(lambda x: x.encode('ascii','ignore') if x is not None else None)
-features_df = features_df.applymap(lambda x: x.encode('ascii','ignore'))
-
 #
 # Vectorize features
 #
 if len(set(categories_df.index.tolist()) - set(features_df.index.tolist())) > 0:
     raise ValueError('ERROR - data mismatch to fit model')
 
-vectorizer = CountVectorizer(ngram_range=(1,1), stop_words='english')
+vectorizer = CountVectorizer(ngram_range=(1,1), stop_words='english', strip_accents='unicode')
 feature_vectors = pd.DataFrame(vectorizer.fit_transform(features_df['feature_bag']).toarray(), index=categories_df.index)
 pickle.dump(vectorizer, open(fitted_vectorizer_path, 'wb'))
 

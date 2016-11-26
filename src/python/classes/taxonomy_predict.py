@@ -222,7 +222,7 @@ class TreeNode:
         if pred_results[-1] not in self.children:
             raise ValueError("ERROR: predicting unknown child: "+str(pred_results[-1]))
 
-        desc_preds = self.children[str(pred_results[-1])].predict(x_data)
+        desc_preds = self.children[pred_results[-1]].predict(x_data)
         if desc_preds is not None:
             pred_results.extend(desc_preds)
         return pred_results

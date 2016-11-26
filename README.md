@@ -55,11 +55,6 @@ MultinomialNB, params={'alpha':1}
   - however others may use up to 32Gb of RAM on the same data
 - a validation set of 25% of the dataset is used to calculate results
 
-## Maybe sometime soon
-
- - variable length categorization
- - uni-code support
- - minimum confidence thresholds
 
 # Disclaimer
 

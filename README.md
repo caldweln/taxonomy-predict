@@ -14,7 +14,7 @@ See [setup.txt](https://github.com/caldweln/taxonomy-predict/blob/master/setup.t
 
 # Results
 
-Training on a dataset of 55K products, where 25% is reserved, achieved the following : 
+Training on a dataset of 55K products, where 25% is reserved for validation, achieved the following : 
 
 ![results](https://cloud.githubusercontent.com/assets/9846264/20644814/40916a4a-b43c-11e6-9a2b-457a9ae12221.png)
 

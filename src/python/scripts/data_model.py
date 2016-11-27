@@ -67,10 +67,10 @@ for i in range(0,len(preds)):
     if abs(cmp(preds[i],y_test.iloc[i].tolist())) > 0:
         miss_count += 1
     for j in range(0,len(preds[i])):
-        while len(level_miss_counts) < len(preds[i]):
+        while len(level_miss_counts) < max(len(preds[i]),len(y_test.iloc[i].tolist())):
             level_miss_counts.append(0)
         if preds[i][j] != y_test.iloc[i].tolist()[j]:
-            for k in range(j,len(preds[i])):
+            for k in range(j,len(y_test.iloc[i].tolist())):
                 level_miss_counts[k] += 1
             break # one bad prediction causes misses for rest of prediction chain
 

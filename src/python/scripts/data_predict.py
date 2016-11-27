@@ -17,12 +17,6 @@ vectorizer = pickle.load( open( fitted_vectorizer_path, "rb" ) )
 t = pickle.load( open( fitted_model_path, "rb" ) )
 
 #
-# Strip out non-ASCII
-#
-ascii_filter = lambda x : x.encode('ascii','ignore')
-features_df['feature_bag'] = features_df['feature_bag'].apply(ascii_filter)
-
-#
 # Vectorize features
 #
 feature_vectors = pd.DataFrame(vectorizer.transform(features_df['feature_bag']).toarray())

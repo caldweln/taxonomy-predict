@@ -14,46 +14,50 @@ See [setup.txt](https://github.com/caldweln/taxonomy-predict/blob/master/setup.t
 
 # Results
 
-| Classifier \ Accuracy | @Level 0 | @Level 1 | @Level 2 | @Level 3 | @Level 4 |
-| ----------------------|----------|----------|----------|----------|----------|
-| LogisticRegression    |  88.67%  |  85.16%  |  77.69%  |  71.83%  |  65.96%  |
-| LinearSVC             |  87.85%  |  84.44%  |  76.79%  |  71.09%  |  65.32%  |
-| RandomForestClassifier|  87.48%  |  83.94%  |  75.07%  |  69.00%  |  62.56%  |
-| KNeighborsClassifier  |  82.26%  |  77.84%  |  68.21%  |  61.78%  |  55.09%  |
-| MultinomialNB         |  80.91%  |  74.10%  |  62.29%  |  54.15%  |  45.23%  |
+Training on a dataset of 55K products, where 25% is reserved, achieved the following : 
 
+![results](https://cloud.githubusercontent.com/assets/9846264/20644814/40916a4a-b43c-11e6-9a2b-457a9ae12221.png)
+
+| Classifier | Train Time |
+|------------|------------|
+| LogisticRegression | 10m48s |
+| LinearSVC | 10m13s |
+| RandomForestClassifier | 77m24s |
+| MultinomialNB | 10m50s |
 
 ## Configuration
 
 Configuration is possible through the Configuration file at [etc/config_openfoodfacts](https://github.com/caldweln/taxonomy-predict/blob/master/src/python/etc/config_openfoodfacts.py).
 
-Where you can configure the classifier to be used, file locations and database settings.
+The classifier to be used, file locations and database settings can be changed.
 
 Results were achieved with the following classifier configurations:
 
 ```
-LogisticRegression, params={'C':1,'class_weight':'balanced'}
+classifier_module='sklearn.linear_model',
+classifier_name='LogisticRegression',
+classifier_params={'C':1,'class_weight':'balanced'
 
-LinearSVC, params={'C':1,'class_weight':'balanced'}
+classifier_module='sklearn.svm',
+classifier_name='LinearSVC',
+classifier_params={'C':1,'class_weight':'balanced'}
 
-RandomForestClassifier,params={'n_estimators':100}
+classifier_module='sklearn.ensemble',
+classifier_name='RandomForestClassifier',
+classifier_params={'n_estimators':100}
 
-KNeighborsClassifier, params={'n_neighbors':4}
+classifier_module='sklearn.naive_bayes',
+classifier_name='MultinomialNB',
+classifier_params={'alpha':1}
 
-MultinomialNB, params={'alpha':1}
 ```
 
 
 ## Notes
 - results obtained on a [Open Food Facts](http://world.openfoodfacts.org/data) mongodb data dump
-- considered only products marked with lang='fr'
-- all non-ASCII characters are dropped
-- only product category hierarchies of length of 5 are considered
-  - shorter hierarchies are dropped
-  - longer hierarchies are truncated
-- LogisticRegression requires less than 8Gb of RAM on OFF data
-  - however others may use up to 32Gb of RAM on the same data
-- a validation set of 25% of the dataset is used to calculate results
+- only product category hierarchies of length of at least 5 are considered
+- LogisticRegression requires about 8Gb of RAM on OFF data
+  - however others may use considerably more
 
 
 # Disclaimer

@@ -14,22 +14,25 @@ See [setup.txt](https://github.com/caldweln/taxonomy-predict/blob/master/setup.t
 
 # Results
 
-Training on a dataset of 55K products, where 25% is reserved for validation, achieved the following : 
+Training on a dataset of 55K products, where 5% is reserved for validation, achieved the following :
 
-![results](https://cloud.githubusercontent.com/assets/9846264/20644814/40916a4a-b43c-11e6-9a2b-457a9ae12221.png)
+![results](https://cloud.githubusercontent.com/assets/9846264/20651408/e1274ca4-b4dc-11e6-86a2-1d2464be7517.png)
+
+![category length dist](https://cloud.githubusercontent.com/assets/9846264/20651407/dded64d8-b4dc-11e6-8dc5-488c51be4294.png)
+
 
 | Classifier | Train Time |
 |------------|------------|
-| LogisticRegression | 10m48s |
-| LinearSVC | 10m13s |
-| RandomForestClassifier | 77m24s |
-| MultinomialNB | 10m50s |
+| LogisticRegression | 14m44s |
+| LinearSVC | 13m42s |
+| RandomForestClassifier | 57m14s |
+| MultinomialNB | 15m02s |
 
 ## Configuration
 
-Configuration is possible through the Configuration file at [etc/config_openfoodfacts](https://github.com/caldweln/taxonomy-predict/blob/master/src/python/etc/config_openfoodfacts.py).
+The classifier to be used, file locations and database settings can be configured at  [etc/config_openfoodfacts](https://github.com/caldweln/taxonomy-predict/blob/master/src/python/etc/config_openfoodfacts.py).
 
-The classifier to be used, file locations and database settings can be changed.
+
 
 Results were achieved with the following classifier configurations:
 
@@ -56,7 +59,7 @@ classifier_params={'alpha':1}
 ## Notes
 - results obtained on a [Open Food Facts](http://world.openfoodfacts.org/data) mongodb data dump
 - only product category hierarchies of length of at least 5 are considered
-- LogisticRegression requires about 8Gb of RAM on OFF data
+- LogisticRegression requires about 10Gb of RAM on OFF data
   - however others may use considerably more
 
 

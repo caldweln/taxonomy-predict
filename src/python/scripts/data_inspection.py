@@ -34,6 +34,8 @@ categories_df = pd.DataFrame(product_df['categories_hierarchy'].tolist())
 
 # categories_hierarchy
 
+product_df['categories_hierarchy'].apply(len).plot(kind='hist',bins=25,title='Category Length Distribution')
+
 print "categories_hierarchy length info"
 product_df['categories_hierarchy'].apply(len).describe()
 print "Top-level categories"

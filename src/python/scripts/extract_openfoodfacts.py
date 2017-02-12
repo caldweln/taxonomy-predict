@@ -15,7 +15,7 @@ def bag_features(docs_path, features_path):
 
     data_df[['feature_bag','categories_hierarchy']].to_pickle(features_path)
 
-    print "Saved feature data to {0}".format(features_path)
+    print(("Saved feature data to {0}".format(features_path)))
 
 
 def run():
@@ -38,21 +38,21 @@ def run():
         os.makedirs(config.fs['data_path'])
 
     if os.path.isfile(uncategorized_docs_path):
-        print "Re-using docs at: {0}".format(uncategorized_docs_path)
+        print(("Re-using docs at: {0}".format(uncategorized_docs_path)))
     else:
         dl.find_db_data(config.db['db_table'], uncategorized_docs_path, config.db['find_where_uncategorized'], config.db['find_select_fields'])
 
     if os.path.isfile(uncategorized_features_path):
-        print "Re-using features at: {0}".format(uncategorized_features_path)
+        print(("Re-using features at: {0}".format(uncategorized_features_path)))
     else:
         bag_features(uncategorized_docs_path, uncategorized_features_path)
 
     if os.path.isfile(categorized_docs_path):
-        print "Re-using docs at: {0}".format(categorized_docs_path)
+        print(("Re-using docs at: {0}".format(categorized_docs_path)))
     else:
         dl.find_db_data(config.db['db_table'], categorized_docs_path, config.db['find_where_categorized'], config.db['find_select_fields'])
 
     if os.path.isfile(categorized_features_path):
-        print "Re-using features at: {0}".format(categorized_features_path)
+        print(("Re-using features at: {0}".format(categorized_features_path)))
     else:
         bag_features(categorized_docs_path, categorized_features_path)

@@ -36,9 +36,9 @@ categories_df = pd.DataFrame(product_df['categories_hierarchy'].tolist())
 
 product_df['categories_hierarchy'].apply(len).plot(kind='hist',bins=25,title='Category Length Distribution')
 
-print "categories_hierarchy length info"
+print("categories_hierarchy length info")
 product_df['categories_hierarchy'].apply(len).describe()
-print "Top-level categories"
+print("Top-level categories")
 categories_df[0].value_counts()
 categories_df[0].value_counts().plot.pie()
 
@@ -49,7 +49,7 @@ categories_df[0].value_counts().plot.pie()
 #need to sub-sample the data categories, most classifier support class_weight
 
 product_df['feature_bag'] = product_df.product_name + ' ' + product_df.brands + ' ' + product_df.quantity + ' ' + product_df.ingredients_text
-print "feature_bag length info"
+print("feature_bag length info")
 product_df['feature_bag'].apply(len).describe()
 
 #problem: small amount of products have large feature_bag length...

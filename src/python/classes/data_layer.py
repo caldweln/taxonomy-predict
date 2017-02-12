@@ -21,7 +21,7 @@ class DataLayer:
         self.client = MongoClient(db_conn_str)
 
         if db_database not in self.client.database_names():
-            print("database list: " + str(self.client.database_names()))
+            print(("database list: " + str(self.client.database_names())))
             raise ValueError("requested database not found")
 
         self.db = self.client[db_database]
@@ -32,7 +32,7 @@ class DataLayer:
             self.db_connect(db_conn_str, db_database)
 
         if db_collection not in self.db.collection_names():
-            print("collection list: " + str(self.db.collection_names()))
+            print(("collection list: " + str(self.db.collection_names())))
             raise ValueError("requested collection not found")
 
         collection = self.db[db_collection]
@@ -46,14 +46,14 @@ class DataLayer:
         else:
             db_documents = list(collection.find(filter=find_where))
 
-        print "Found {0} {1} documents".format(len(db_documents), db_collection)
+        print(("Found {0} {1} documents".format(len(db_documents), db_collection)))
 
         #
         # save result data
         #
         pickle.dump(db_documents, open(file_path, 'wb'))
 
-        print "Saved documents to {0}".format(file_path)
+        print(("Saved documents to {0}".format(file_path)))
 
 
     def update_db_data(self, db_collection, index_field, update_field, update_data, db_conn_str=None, db_database=None):
@@ -62,7 +62,7 @@ class DataLayer:
             self.db_connect(db_conn_str, db_database)
 
         if db_collection not in self.db.collection_names():
-            print("collection list: " + str(self.db.collection_names()))
+            print(("collection list: " + str(self.db.collection_names())))
             raise ValueError("requested collection not found")
 
         collection = self.db[db_collection]
@@ -73,4 +73,4 @@ class DataLayer:
             match_count += result.matched_count
             update_count += result.modified_count
 
-        print "{0}.{1} updated/matched {2}/{3}".format(db_collection, update_field, update_count, match_count)
+        print(("{0}.{1} updated/matched {2}/{3}".format(db_collection, update_field, update_count, match_count)))

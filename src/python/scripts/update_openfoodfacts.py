@@ -8,7 +8,7 @@ def confirm():
         yes = set(['yes','y', 'ye', ''])
         no = set(['no','n'])
 
-        choice = raw_input().lower()
+        choice = input().lower()
         if choice in yes:
            return True
         elif choice in no:
@@ -30,7 +30,7 @@ def run():
     # check results data exists
     #
     if not os.path.exists(prediction_results_path):
-        print "Prediction results not found"
+        print("Prediction results not found")
         return
 
     results_dict = pickle.load( open( prediction_results_path, "rb" ) )
@@ -38,9 +38,9 @@ def run():
     #
     # confirm & action
     #
-    print "You are about to update {0} records, are you sure you wish to continue? [yes/no] (yes)".format(len(results_dict))
+    print("You are about to update {0} records, are you sure you wish to continue? [yes/no] (yes)".format(len(results_dict)))
 
     if confirm():
         dl.update_db_data(config.db['db_table'], config.db['update_filter_field'], config.db['update_update_field'], results_dict)
     else:
-        print "Exiting without action"
+        print("Exiting without action")

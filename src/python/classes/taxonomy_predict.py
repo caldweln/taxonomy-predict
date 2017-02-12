@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import codecs
 from sklearn import naive_bayes, linear_model, svm, ensemble, neighbors, metrics
-from exceptions import NotFittedError
+from .exceptions import NotFittedError
 
 class TreeOfClassifiers:
 
@@ -16,10 +16,10 @@ class TreeOfClassifiers:
         self.params = params
 
     def fit(self, x_all, y_all):
-        print "Building tree of classifiers"
+        print("Building tree of classifiers")
         res = [self.root.add(TreeNode(list(row.dropna()))) for ix,row in y_all.iterrows()]
         self.root.initClassifier(self.moduleName, self.classifierName, self.params)
-        print "Fitting to data"
+        print("Fitting to data")
         self.root.fit(x_all, y_all)
 
 
@@ -56,17 +56,17 @@ class TreeOfClassifiers:
         if total_count > 0:
             total_acc /= total_count
             total_f1_score /= total_count
-            print "Level "+str(level_num)+", "+str(total_count)+"/"+str(len(nodes))
-            print "Avg Accuracy: "+str(total_acc)
-            print "Avg F1 Score: "+str(total_f1_score)
+            print("Level "+str(level_num)+", "+str(total_count)+"/"+str(len(nodes)))
+            print("Avg Accuracy: "+str(total_acc))
+            print("Avg F1 Score: "+str(total_f1_score))
         else:
-            print "Level "+str(level_num)+", "+str(total_count)+"/"+str(len(nodes))
+            print("Level "+str(level_num)+", "+str(total_count)+"/"+str(len(nodes)))
 
 
     def describe(self):
-        print "Taxonomy: " + self.description + " contains "+str(self.root.getDescendentCount()+1)+" nodes, "+str(self.root.getClassifierCount())+" of which have a classifier"
+        print("Taxonomy: " + self.description + " contains "+str(self.root.getDescendentCount()+1)+" nodes, "+str(self.root.getClassifierCount())+" of which have a classifier")
         self.root.describe()
-        print "Taxonomy: " + self.description + " contains "+str(self.root.getDescendentCount()+1)+" nodes, "+str(self.root.getClassifierCount())+" of which have a classifier"
+        print("Taxonomy: " + self.description + " contains "+str(self.root.getDescendentCount()+1)+" nodes, "+str(self.root.getClassifierCount())+" of which have a classifier")
 
 class TreeNode:
     def __init__(self, location):
@@ -84,10 +84,10 @@ class TreeNode:
 
     def seekNodesAt(self, level_to_go):
         if level_to_go<=0:
-            return self.children.values()
+            return list(self.children.values())
         else:
             result = []
-            for child in self.children.values():
+            for child in list(self.children.values()):
                 result += child.seekNodesAt(level_to_go-1)
             return result
 
@@ -96,23 +96,23 @@ class TreeNode:
         if node.location is None or len(node.location) == 0 or len(node.location) <= len(self.location):
             raise ValueError('trying to add a node with bad/missing location')
 
-        if cmp(node.location[:-1], self.location) == 0:
+        if node.location[:-1] == self.location:
             # keep at this level
-            if not self.children.has_key(node.location[-1]):
+            if node.location[-1] not in self.children:
                 #print "Adding child at "+self.getLocationStr()
                 self.children[node.location[-1]] = node
         else:
             # pass down to next level
             dstNodeLabel = node.location[len(self.location)]
-            if not self.children.has_key(dstNodeLabel):
+            if dstNodeLabel not in self.children:
                 self.add(TreeNode(self.location + [dstNodeLabel]))
             self.children[dstNodeLabel].add(node)
 
     def initClassifier(self, moduleName, classifierName, params):
-        for child in self.children.values():
+        for child in list(self.children.values()):
             child.initClassifier(moduleName, classifierName, params)
         if len(self.children) == 1:
-            self.default_predict = self.children.keys()[0]
+            self.default_predict = list(self.children.keys())[0]
         elif len(self.children) > 1:
             module = __import__(moduleName, fromlist=['dummy'])
             classifierClass = getattr(module, classifierName)
@@ -120,13 +120,13 @@ class TreeNode:
 
     def getDescendentCount(self):
         num_desc = len(self.children)
-        for child in self.children.values():
+        for child in list(self.children.values()):
             num_desc += child.getDescendentCount()
         return num_desc
 
     def getClassifierCount(self):
         num_clsf = (1 if len(self.children) > 1 else 0)
-        for child in self.children.values():
+        for child in list(self.children.values()):
             num_clsf += child.getClassifierCount()
         return num_clsf
 
@@ -134,7 +134,7 @@ class TreeNode:
         result = []
         if self.classifier is not None:
             result.append([self.location,self.classifier])
-        for child in self.children.values():
+        for child in list(self.children.values()):
             descendentResults = child.getLocationClassifiers()
             if len(descendentResults) > 0:
                 result.extend(descendentResults)
@@ -146,7 +146,7 @@ class TreeNode:
         #
         # fit child classifiers
         #
-        for child in self.children.values():
+        for child in list(self.children.values()):
             child.fit(x_all, y_all) #maybe just pass x_fit
         #
         # Which of the data applies to this node
@@ -197,8 +197,8 @@ class TreeNode:
     def prune(self, default_predict=None):
         self.classifier = None
         self.default_predict = default_predict
-        if default_predict is not None and self.children.has_key(default_predict):
-            prunes = self.children.keys()
+        if default_predict is not None and default_predict in self.children:
+            prunes = list(self.children.keys())
             #print str(prunes.remove(default_predict)) + " PRUNED FROM CHILDREN LIST"
             self.children = {default_predict:self.children[default_predict]} # removing other children
         else:
@@ -243,17 +243,17 @@ class TreeNode:
         else:
             min_dist = 1
             result = min_dist
-            for child in self.children.values():
+            for child in list(self.children.values()):
                 result = max(result, min_dist + child.max_dist_to_leaf())
             return result
 
     def describe(self):
         if self.isRoot:
-            print "<ROOT NODE> ["+str(self.classifier)+"] parent of " + str(len(self.children)) + " children"
+            print("<ROOT NODE> ["+str(self.classifier)+"] parent of " + str(len(self.children)) + " children")
         elif self.isParent:
-            print "'" + self.location[-1].encode('ascii', 'ignore') + "' ["+str(self.classifier)+"] at " + self.getLocationStr() + " parent of " + str(len(self.children)) + " children"
+            print("'" + self.location[-1].encode('ascii', 'ignore') + "' ["+str(self.classifier)+"] at " + self.getLocationStr() + " parent of " + str(len(self.children)) + " children")
         else:
-            print "'" + self.location[-1].encode('ascii', 'ignore') + "' ["+str(self.classifier)+"] at " + self.getLocationStr()
+            print("'" + self.location[-1].encode('ascii', 'ignore') + "' ["+str(self.classifier)+"] at " + self.getLocationStr())
 
-        for child in self.children.values():
+        for child in list(self.children.values()):
             child.describe()

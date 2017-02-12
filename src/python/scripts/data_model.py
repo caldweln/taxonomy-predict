@@ -1,11 +1,12 @@
 import os
 import pickle
+import numpy as np
 import pandas as pd
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn import  model_selection, preprocessing, metrics
-import decimal
 from classes import taxonomy_predict as tp
 from etc import config_openfoodfacts as config
+from scripts import evaluate as ev
 
 categorized_docs_path = os.path.join(config.fs['data_path'], config.fs['categorized_docs'])
 uncategorized_docs_path = os.path.join(config.fs['data_path'], config.fs['uncategorized_docs'])
@@ -61,22 +62,16 @@ pickle.dump(t, open(fitted_model_path, 'wb'))
 #
 preds = t.predict(x_test)
 
-miss_count = 0
-level_miss_counts = []
-for i in range(0,len(preds)):
-    if abs(cmp(preds[i],y_test.iloc[i].tolist())) > 0:
-        miss_count += 1
-    for j in range(0,len(preds[i])):
-        while len(level_miss_counts) < max(len(preds[i]),len(y_test.iloc[i].tolist())):
-            level_miss_counts.append(0)
-        if preds[i][j] != y_test.iloc[i].tolist()[j]:
-            for k in range(j,len(y_test.iloc[i].tolist())):
-                level_miss_counts[k] += 1
-            break # one bad prediction causes misses for rest of prediction chain
+#
+# convert y_test to list of lists, and rtrim None values
+#
+y_test_list = list(map(lambda l: list(filter(None,l)),y_test.values.tolist()))
 
-miss_count = decimal.Decimal(miss_count)
-pred_count = decimal.Decimal(len(preds))
-print "Perfect predictions: {0:.2f}%".format(100-(miss_count*100/pred_count))
-for i in range(0,len(level_miss_counts)):
-    miss_count = decimal.Decimal(level_miss_counts[i])
-    print "Accuracy at level {0}: {1:.2f}%".format(i, 100-(miss_count*100/pred_count))
+#
+# evaluate predictions
+#
+scores = list(map(lambda p,y: (len(y),*ev.score_class_pred(p,y)),preds,y_test_list))
+
+scores_by_depth = pd.DataFrame(scores, columns=['Length','Precision','Recall','F-score']).groupby('Length').agg([np.mean]) #.plot()
+
+print(scores_by_depth)

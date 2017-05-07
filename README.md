@@ -16,7 +16,7 @@ See [setup.txt](https://github.com/caldweln/taxonomy-predict/blob/master/setup.t
 
 Training on a dataset of 55K products, where 5% is reserved for validation, achieved the following :
 
-![results](https://cloud.githubusercontent.com/assets/9846264/20651408/e1274ca4-b4dc-11e6-86a2-1d2464be7517.png)
+![results](https://cloud.githubusercontent.com/assets/9846264/25779197/9346811a-330a-11e7-8774-04808985b47d.png)
 
 ![category length dist](https://cloud.githubusercontent.com/assets/9846264/20651407/dded64d8-b4dc-11e6-8dc5-488c51be4294.png)
 
@@ -39,7 +39,7 @@ Results were achieved with the following classifier configurations:
 ```
 classifier_module='sklearn.linear_model',
 classifier_name='LogisticRegression',
-classifier_params={'C':1,'class_weight':'balanced'
+classifier_params={'C':1,'class_weight':'balanced'}
 
 classifier_module='sklearn.svm',
 classifier_name='LinearSVC',
@@ -47,7 +47,7 @@ classifier_params={'C':1,'class_weight':'balanced'}
 
 classifier_module='sklearn.ensemble',
 classifier_name='RandomForestClassifier',
-classifier_params={'n_estimators':100}
+classifier_params={'n_estimators':10}
 
 classifier_module='sklearn.naive_bayes',
 classifier_name='MultinomialNB',
